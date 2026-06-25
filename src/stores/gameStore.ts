@@ -10,6 +10,7 @@ import type {
   PartialMatchState,
   Player,
   PlayStyle,
+  TournamentPhase,
   TournamentState,
 } from "../engine/types";
 import { getFormation } from "../engine/formations";
@@ -21,6 +22,7 @@ import {
   getCurrentUserFixture,
   getNextKnockoutPhase,
   getOpponentForUserFixture,
+  getPhaseCelebrationAfterWin,
   simulateAiFixturesForRound,
 } from "../engine/tournament";
 import {
@@ -48,6 +50,7 @@ interface GameStore {
   tournament: TournamentState;
   champion: boolean;
   eliminated: boolean;
+  phaseCelebration: TournamentPhase | null;
   rngSeed: number;
   lastMatchResult: MatchResult | null;
   partialMatch: PartialMatchState | null;
@@ -67,6 +70,7 @@ interface GameStore {
   setMatchPhase: (phase: MatchPhase) => void;
   completeMatchView: () => void;
   simulateAllMatches: () => void;
+  clearPhaseCelebration: () => void;
   reset: () => void;
 }
 
@@ -261,6 +265,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   tournament: emptyTournament(),
   champion: false,
   eliminated: false,
+  phaseCelebration: null,
   rngSeed: newSeed(),
   lastMatchResult: null,
   partialMatch: null,
@@ -285,6 +290,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       tournament: generateTournament(seed),
       champion: false,
       eliminated: false,
+      phaseCelebration: null,
       rngSeed: seed,
       lastMatchResult: null,
       partialMatch: null,
@@ -410,10 +416,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!state.partialMatch) return;
 
     const result = simulateSecondHalf(state.partialMatch, choice);
+    const prevTournament = state.tournament;
     const { tournament, champion, eliminated } = finalizeMatch(
       state.tournament,
       result,
       state.rngSeed,
+    );
+    const phaseCelebration = getPhaseCelebrationAfterWin(
+      prevTournament,
+      tournament,
+      champion,
+      eliminated,
     );
 
     set({
@@ -423,6 +436,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       matchPhase: "second_half",
       champion,
       eliminated,
+      phaseCelebration,
     });
   },
 
@@ -519,6 +533,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
+  clearPhaseCelebration: () => set({ phaseCelebration: null }),
+
   reset: () =>
     set({
       screen: "home",
@@ -527,6 +543,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       tournament: emptyTournament(),
       champion: false,
       eliminated: false,
+      phaseCelebration: null,
       lastMatchResult: null,
       partialMatch: null,
       matchPhase: "idle",

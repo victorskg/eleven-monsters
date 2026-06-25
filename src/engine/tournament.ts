@@ -186,6 +186,66 @@ export function getPhaseLabel(phase: TournamentPhase): string {
   return labels[phase];
 }
 
+export function getPhaseCelebrationAfterWin(
+  prev: TournamentState,
+  next: TournamentState,
+  champion: boolean,
+  eliminated: boolean,
+): TournamentPhase | null {
+  if (champion || eliminated || next.stage !== "knockout") return null;
+
+  const currentMatch = next.knockoutMatches[next.currentKnockoutIndex];
+  if (!currentMatch || currentMatch.result) return null;
+
+  const justQualified =
+    !prev.groupComplete && next.groupComplete && next.qualified;
+  const advancedKnockout =
+    prev.stage === "knockout" &&
+    next.currentKnockoutIndex > prev.currentKnockoutIndex;
+
+  if (justQualified || advancedKnockout) {
+    return currentMatch.phase;
+  }
+
+  return null;
+}
+
+export function getPhaseCelebrationCopy(phase: TournamentPhase): {
+  title: string;
+  subtitle: string;
+  phaseLine: string;
+} {
+  const phaseLine = getPhaseLabel(phase).toUpperCase();
+  switch (phase) {
+    case "round16":
+      return {
+        title: "Classificou!",
+        subtitle: "Continue assim — o mata-mata te espera.",
+        phaseLine,
+      };
+    case "quarter":
+      return {
+        title: "Avançou!",
+        subtitle: "Continue assim — falta pouco para a glória.",
+        phaseLine,
+      };
+    case "semi":
+      return {
+        title: "Avançou!",
+        subtitle: "Continue assim — a final está ao alcance.",
+        phaseLine,
+      };
+    case "final":
+      return {
+        title: "Avançou!",
+        subtitle: "Continue assim — uma vitória e você é campeão.",
+        phaseLine,
+      };
+    default:
+      return { title: "Avançou!", subtitle: "Continue assim.", phaseLine };
+  }
+}
+
 export function getNextKnockoutPhase(
   currentIndex: number,
 ): TournamentPhase | null {

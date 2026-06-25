@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { calculateTeamRatings } from "../engine/ratings";
 import { computeStandings } from "../engine/standings";
@@ -9,29 +9,44 @@ import {
   getPhaseLabel,
 } from "../engine/tournament";
 import { StyleSliders } from "../components/tactics/StyleSliders";
+import { PhaseAdvanceOverlay } from "../components/tournament/PhaseAdvanceOverlay";
 import { Button } from "../components/ui/Button";
 import { ScreenLayout } from "../components/ui/ScreenLayout";
 import { useGameStore } from "../stores/gameStore";
+import { getTacticalAdvice } from "../engine/opponents";
 import type { Opponent, Player } from "../engine/types";
+import type { StyleSliderHints } from "../components/tactics/StyleSliders";
 
-function OpponentProfileCard({ opponent }: { opponent: Opponent }) {
+function OpponentProfileCard({
+  opponent,
+  advice,
+}: {
+  opponent: Opponent;
+  advice: ReturnType<typeof getTacticalAdvice>;
+}) {
   const { profile } = opponent;
   return (
-    <div className="rounded border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
+    <div className="rounded border border-white/10 bg-black/30 p-4 space-y-3 text-sm">
       <div className="flex items-center justify-between">
         <h3 className="font-display tracking-widest text-[var(--color-gold)]">
           {opponent.name}
         </h3>
         <span className="text-xs opacity-60">Força {opponent.strength}</span>
       </div>
-      <p>
-        <span className="opacity-60">Estilo:</span>{" "}
+      <p className="text-xs">
+        <span className="opacity-60">Joga:</span>{" "}
         <span className="font-bold">{profile.trait}</span>
+        <span className="opacity-50"> — {profile.strengthNote}</span>
       </p>
-      <p className="text-xs opacity-70">{profile.strengthNote}</p>
-      <p className="text-xs text-yellow-400/80">
-        Fraqueza: {profile.weakness}
-      </p>
+      <div className="rounded bg-yellow-900/20 border border-yellow-600/20 px-3 py-2 space-y-1">
+        <p className="text-[10px] uppercase tracking-widest text-yellow-400/70">
+          Fraqueza
+        </p>
+        <p className="text-xs text-yellow-100/90">{advice.exploit}</p>
+        <p className="text-xs text-[var(--color-gold)] font-medium">
+          {advice.summary}
+        </p>
+      </div>
     </div>
   );
 }
@@ -43,6 +58,12 @@ export const TournamentPage = memo(function TournamentPage() {
   const setPlayStyle = useGameStore((s) => s.setPlayStyle);
   const simulateCurrentMatch = useGameStore((s) => s.simulateCurrentMatch);
   const simulateAllMatches = useGameStore((s) => s.simulateAllMatches);
+  const phaseCelebration = useGameStore((s) => s.phaseCelebration);
+  const clearPhaseCelebration = useGameStore((s) => s.clearPhaseCelebration);
+
+  const handleDismissCelebration = useCallback(() => {
+    clearPhaseCelebration();
+  }, [clearPhaseCelebration]);
 
   const players = useMemo(
     () =>
@@ -86,6 +107,18 @@ export const TournamentPage = memo(function TournamentPage() {
       ? currentKnockout.opponent
       : null);
 
+  const tacticalAdvice = activeOpponent
+    ? getTacticalAdvice(activeOpponent.profile)
+    : null;
+
+  const sliderHints: StyleSliderHints | undefined = tacticalAdvice
+    ? {
+        pressing: tacticalAdvice.highlightPressing,
+        width: tacticalAdvice.highlightWidth,
+        tempo: tacticalAdvice.highlightTempo,
+      }
+    : undefined;
+
   const preview =
     activeOpponent &&
     ((currentFixture && !currentFixture.played) ||
@@ -105,10 +138,15 @@ export const TournamentPage = memo(function TournamentPage() {
       !currentKnockout.result);
 
   return (
-    <ScreenLayout
-      title="TORNEIO"
-      subtitle={tournament.group.name}
-    >
+    <>
+      <PhaseAdvanceOverlay
+        phase={phaseCelebration}
+        onDismiss={handleDismissCelebration}
+      />
+      <ScreenLayout
+        title="TORNEIO"
+        subtitle={tournament.group.name}
+      >
       <div className="space-y-6">
         {/* Tabela do grupo */}
         <div className="rounded border border-white/10 bg-black/30 overflow-hidden">
@@ -286,7 +324,10 @@ export const TournamentPage = memo(function TournamentPage() {
             <h3 className="font-display text-sm tracking-widest text-[var(--color-gold)]">
               Preparação
             </h3>
-            <OpponentProfileCard opponent={activeOpponent} />
+            <OpponentProfileCard
+              opponent={activeOpponent}
+              advice={tacticalAdvice!}
+            />
             <div className="rounded border border-white/10 bg-black/30 p-4">
               <h4 className="font-display text-sm tracking-widest text-[var(--color-gold)] mb-4">
                 Ajustar Tática
@@ -295,6 +336,7 @@ export const TournamentPage = memo(function TournamentPage() {
                 playStyle={playStyle}
                 onChange={setPlayStyle}
                 idPrefix="tournament"
+                hints={sliderHints}
               />
             </div>
           </div>
@@ -324,24 +366,17 @@ export const TournamentPage = memo(function TournamentPage() {
               <span>Empate {(preview.drawChance * 100).toFixed(0)}%</span>
               <span>Derrota {(preview.lossChance * 100).toFixed(0)}%</span>
             </div>
-            <ul className="text-xs opacity-70 space-y-1 border-t border-white/10 pt-3">
-              {preview.factors.map((f) => (
-                <li key={f}>• {f}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {tournament.groupComplete && tournament.qualified && tournament.stage === "knockout" && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded border border-green-600/50 bg-green-900/20 px-4 py-3 text-center"
-          >
-            <p className="font-display text-lg tracking-widest text-green-400">
-              CLASSIFICADO — OITAVAS DE FINAL
+            <p className="text-xs opacity-80 border-t border-white/10 pt-3">
+              {preview.factors[0]}
             </p>
-          </motion.div>
+            {preview.factors.length > 1 && (
+              <ul className="text-[10px] opacity-60 space-y-0.5">
+                {preview.factors.slice(1).map((f, i) => (
+                  <li key={`${f}-${i}`}>• {f}</li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
 
         {tournament.groupComplete && !tournament.qualified && (
@@ -364,6 +399,7 @@ export const TournamentPage = memo(function TournamentPage() {
         </div>
       </div>
     </ScreenLayout>
+    </>
   );
 });
 

@@ -123,13 +123,10 @@ export function estimateMatchPreview(
   );
 
   const factors: string[] = [
-    `Seu ataque (${ratings.attack}) vs defesa adversária (~${opponent.strength})`,
-    `Sua defesa (${ratings.defense}) vs ataque adversário (~${opponent.strength})`,
-    `Gols esperados: ${goalsFor.toFixed(1)} a favor, ${goalsAgainst.toFixed(1)} contra`,
-    `Estilo adversário: ${opponent.profile.trait}`,
+    `~${goalsFor.toFixed(1)} gols marcados · ~${goalsAgainst.toFixed(1)} sofridos`,
   ];
   if (ratings.chemistryBonus > 0) {
-    factors.push(`Bônus de química: +${ratings.chemistryBonus}%`);
+    factors.push(`Química +${ratings.chemistryBonus}%`);
   }
   for (const note of matchup.notes) {
     factors.push(note);
@@ -426,6 +423,7 @@ export function simulateSecondHalf(
     wentToPenalties,
     events: events.sort((a, b) => a.minute - b.minute),
     preview,
+    halftimeChoice: choice,
     won,
     drew,
   };
@@ -463,4 +461,36 @@ export function simulateAiMatch(
 
 export function getHalftimeChoiceLabel(choice: HalftimeChoice): string {
   return HALFTIME_MODS[choice].label;
+}
+
+export function buildMatchSummary(result: MatchResult): string[] {
+  const lines: string[] = [];
+  const expFor = result.preview.expectedGoalsFor;
+  const expAgainst = result.preview.expectedGoalsAgainst;
+  const actFor = result.homeGoalsRegular;
+  const actAgainst = result.awayGoalsRegular;
+
+  lines.push(
+    `Projeção ~${expFor.toFixed(1)}×${expAgainst.toFixed(1)} · Resultado ${actFor}×${actAgainst}`,
+  );
+
+  const goalDiff = actFor - actAgainst;
+  const expDiff = expFor - expAgainst;
+  if (goalDiff > expDiff + 0.5) {
+    lines.push("Performance acima do esperado");
+  } else if (goalDiff < expDiff - 0.5) {
+    lines.push("Abaixo da projeção — adversário superou o preview");
+  }
+
+  if (result.halftimeChoice && result.halftimeChoice !== "maintain") {
+    lines.push(`Intervalo: ${getHalftimeChoiceLabel(result.halftimeChoice)}`);
+  }
+
+  if (result.wentToPenalties) {
+    lines.push("Definido nos pênaltis");
+  } else if (result.wentToExtraTime) {
+    lines.push("Decidido na prorrogação");
+  }
+
+  return lines;
 }

@@ -6,6 +6,7 @@ import { Button } from "../components/ui/Button";
 import { ScreenLayout } from "../components/ui/ScreenLayout";
 import { useGameStore } from "../stores/gameStore";
 import { getPhaseLabel } from "../engine/tournament";
+import { buildMatchSummary } from "../engine/simulation";
 import type { MatchResult, TournamentState } from "../engine/types";
 
 function getMatchContext(tournament: TournamentState, result: MatchResult) {
@@ -247,16 +248,22 @@ export const MatchPage = memo(function MatchPage() {
           </div>
         )}
 
-        <div className="w-full max-w-md rounded border border-white/10 bg-black/30 p-4">
-          <h3 className="font-display text-sm tracking-widest text-[var(--color-gold)] mb-2">
-            Análise
-          </h3>
-          <ul className="text-xs opacity-70 space-y-1">
-            {result.preview.factors.map((f) => (
-              <li key={f}>• {f}</li>
-            ))}
-          </ul>
-        </div>
+        {(() => {
+          const summary = buildMatchSummary(result);
+          if (summary.length === 0) return null;
+          return (
+            <div className="w-full max-w-md rounded border border-white/10 bg-black/30 p-4">
+              <h3 className="font-display text-sm tracking-widest text-[var(--color-gold)] mb-2">
+                Resumo
+              </h3>
+              <ul className="text-xs opacity-70 space-y-1">
+                {summary.map((line, i) => (
+                  <li key={i}>• {line}</li>
+                ))}
+              </ul>
+            </div>
+          );
+        })()}
 
         <Button
           size="lg"

@@ -147,6 +147,7 @@ export interface MatchResult {
   wentToPenalties: boolean;
   events: GoalEvent[];
   preview: MatchPreview;
+  halftimeChoice?: HalftimeChoice;
   won: boolean;
   drew: boolean;
 }

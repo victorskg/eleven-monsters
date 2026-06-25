@@ -1,14 +1,17 @@
-import { memo } from "react";
+import { memo, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Button } from "../components/ui/Button";
 import { ScreenLayout } from "../components/ui/ScreenLayout";
 import { useGameStore } from "../stores/gameStore";
+import { shareGameResult } from "../utils/shareResult";
 
 export const ResultPage = memo(function ResultPage() {
   const champion = useGameStore((s) => s.champion);
   const tournament = useGameStore((s) => s.tournament);
   const draftSlots = useGameStore((s) => s.draftSlots);
   const reset = useGameStore((s) => s.reset);
+
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   const userResults = tournament.group.fixtures
     .filter((f) => f.isUserMatch && f.result)
@@ -22,6 +25,23 @@ export const ResultPage = memo(function ResultPage() {
   const wins = allResults.filter((r) => r.won).length;
   const goalsFor = allResults.reduce((a, r) => a + r.homeGoals, 0);
   const goalsAgainst = allResults.reduce((a, r) => a + r.awayGoals, 0);
+
+  const handleShare = useCallback(async () => {
+    try {
+      const outcome = await shareGameResult({
+        champion,
+        wins,
+        goalsFor,
+        goalsAgainst,
+      });
+      setShareFeedback(
+        outcome === "shared" ? "Compartilhado!" : "Link copiado!",
+      );
+      setTimeout(() => setShareFeedback(null), 2500);
+    } catch {
+      // usuário cancelou o diálogo nativo
+    }
+  }, [champion, wins, goalsFor, goalsAgainst]);
 
   return (
     <ScreenLayout>
@@ -65,7 +85,7 @@ export const ResultPage = memo(function ResultPage() {
             <p className="font-display text-3xl text-[var(--color-gold)]">
               {goalsAgainst}
             </p>
-            <p className="text-xs uppercase opacity-60">Gols Contra</p>
+            <p className="text-xs uppercase opacity-60">Gols Sofridos</p>
           </div>
         </div>
 
@@ -90,10 +110,24 @@ export const ResultPage = memo(function ResultPage() {
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <Button size="lg" onClick={reset}>
-            Jogar Novamente
-          </Button>
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button size="lg" onClick={reset}>
+              Jogar Novamente
+            </Button>
+            <Button size="lg" variant="secondary" onClick={handleShare}>
+              Compartilhar
+            </Button>
+          </div>
+          {shareFeedback && (
+            <motion.p
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xs text-[var(--color-gold)]"
+            >
+              {shareFeedback}
+            </motion.p>
+          )}
         </div>
       </div>
     </ScreenLayout>

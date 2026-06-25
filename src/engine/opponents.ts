@@ -148,3 +148,61 @@ export function getOpponentProfile(name: string): OpponentProfile {
     strengthNote: "Time competitivo",
   };
 }
+
+export interface TacticalAdvice {
+  exploit: string;
+  summary: string;
+  highlightPressing: boolean;
+  highlightWidth: boolean;
+  highlightTempo: boolean;
+}
+
+export function getTacticalAdvice(profile: OpponentProfile): TacticalAdvice {
+  const w = profile.weakness.toLowerCase();
+  let highlightPressing = false;
+  let highlightWidth = false;
+  let highlightTempo = false;
+  const actions: string[] = [];
+
+  if (
+    w.includes("pressão") ||
+    w.includes("pressao") ||
+    w.includes("posse") ||
+    w.includes("desorganizado")
+  ) {
+    highlightPressing = true;
+    actions.push("Pressão");
+  }
+  if (w.includes("ritmo") || w.includes("criação") || w.includes("criacao")) {
+    highlightTempo = true;
+    actions.push("Ritmo");
+  }
+  if (w.includes("largo") || w.includes("estica") || w.includes("vulnerável ao ataque")) {
+    highlightWidth = true;
+    actions.push("Largura");
+  }
+  if (w.includes("contra-ataque")) {
+    highlightPressing = true;
+    highlightTempo = true;
+    if (!actions.includes("Pressão")) actions.push("Pressão");
+    if (!actions.includes("Ritmo")) actions.push("Ritmo");
+  }
+  if (w.includes("espaços nas costas")) {
+    highlightTempo = true;
+    if (!actions.includes("Ritmo")) actions.push("Ritmo");
+  }
+
+  const unique = [...new Set(actions)];
+  const summary =
+    unique.length > 0
+      ? `Para explorar: suba ${unique.join(", ")}`
+      : "Ajuste fino — observe o preview abaixo";
+
+  return {
+    exploit: profile.weakness,
+    summary,
+    highlightPressing,
+    highlightWidth,
+    highlightTempo,
+  };
+}

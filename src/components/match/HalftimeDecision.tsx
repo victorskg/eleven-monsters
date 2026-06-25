@@ -12,21 +12,25 @@ const CHOICES: {
   id: HalftimeChoice;
   label: string;
   description: string;
+  effect: string;
 }[] = [
   {
     id: "maintain",
     label: "Manter",
     description: "Seguir com a mesma tática do 1º tempo",
+    effect: "Sem bônus ou penalidade no 2º tempo",
   },
   {
     id: "push",
     label: "Aumentar pressão",
-    description: "Mais ataque, mais risco — buscar virada ou ampliar",
+    description: "Buscar virada ou ampliar vantagem",
+    effect: "+12% ataque · −8% defesa no 2º tempo",
   },
   {
     id: "hold",
     label: "Segurar",
-    description: "Fechar o jogo — menos gols, defesa reforçada",
+    description: "Proteger o placar ou segurar empate",
+    effect: "−8% ataque · +10% defesa no 2º tempo",
   },
 ];
 
@@ -36,11 +40,6 @@ export const HalftimeDecision = memo(function HalftimeDecision({
   opponent,
   onChoose,
 }: HalftimeDecisionProps) {
-  const trailing = homeGoals < awayGoals;
-  const tip = trailing
-    ? `${opponent.profile.trait}: ${opponent.profile.weakness}`
-    : `Adversário joga ${opponent.profile.trait.toLowerCase()} — ${opponent.profile.weakness}`;
-
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
       <div className="w-full max-w-md rounded border border-[var(--color-gold)] bg-[var(--color-broadcast)] p-6 space-y-5 shadow-2xl">
@@ -54,7 +53,9 @@ export const HalftimeDecision = memo(function HalftimeDecision({
           <p className="text-xs opacity-60 mt-1">vs {opponent.name}</p>
         </div>
 
-        <p className="text-xs text-center opacity-70 italic">{tip}</p>
+        <p className="text-xs text-center opacity-70">
+          Sua escolha altera o 2º tempo — afeta quantos gols você marca e sofre.
+        </p>
 
         <div className="space-y-2">
           {CHOICES.map((choice) => (
@@ -68,6 +69,7 @@ export const HalftimeDecision = memo(function HalftimeDecision({
                 {choice.label}
               </p>
               <p className="text-xs opacity-70 mt-0.5">{choice.description}</p>
+              <p className="text-[10px] opacity-50 mt-1">{choice.effect}</p>
             </button>
           ))}
         </div>

@@ -17,9 +17,9 @@ interface PlayerCardProps {
 }
 
 const SIZE_CLASSES = {
-  sm: "w-24 min-h-44 text-[10px] shrink-0",
-  md: "w-28 min-h-52 text-[10px] shrink-0 sm:w-32 sm:min-h-56",
-  lg: "w-36 min-h-60 text-xs shrink-0 sm:w-40 sm:min-h-64",
+  sm: "w-24 text-[10px] shrink-0",
+  md: "w-28 text-[10px] shrink-0 sm:w-32",
+  lg: "w-36 text-xs shrink-0 sm:w-40",
 };
 
 const ATTR_COLORS: Record<string, string> = {
@@ -79,7 +79,11 @@ export const PlayerCard = memo(function PlayerCard({
   const colors = RARITY_COLORS[rarity];
   const showStats = mode === "classic" || scouted;
   const isLegendary = rarity === "legendary";
+  const hasChemistry = synergyDelta > 0 || synergyNotes.length > 0;
   const { pace, shooting, passing, defending, physical } = player.attributes;
+
+  const flipDuration =
+    rarity === "legendary" ? 0.8 : rarity === "epic" ? 0.6 : 0.4;
 
   return (
     <motion.button
@@ -88,14 +92,14 @@ export const PlayerCard = memo(function PlayerCard({
       animate={{ rotateY: 0, opacity: 1, scale: selected ? 1.05 : 1 }}
       transition={{
         delay: revealDelay,
-        duration: rarity === "legendary" ? 0.8 : rarity === "epic" ? 0.6 : 0.4,
+        duration: flipDuration,
         type: "spring",
         stiffness: 200,
       }}
       whileHover={onClick ? { y: -8, scale: 1.03 } : undefined}
       whileTap={onClick ? { scale: 0.98 } : undefined}
       onClick={onClick}
-      className={`card-sticker relative flex shrink-0 flex-col p-2 shadow-xl ${SIZE_CLASSES[size]} ${
+      className={`card-sticker relative z-0 flex shrink-0 flex-col p-2 shadow-xl ${SIZE_CLASSES[size]} ${
         onClick ? "cursor-pointer" : "cursor-default"
       } ${selected ? "ring-2 ring-[var(--color-gold)]" : ""}`}
       style={{
@@ -105,61 +109,66 @@ export const PlayerCard = memo(function PlayerCard({
       aria-label={`${player.name}, ${player.nation} ${player.year}`}
     >
       {isLegendary && (
-        <div className="foil-legendary absolute inset-0 opacity-20 pointer-events-none" />
+        <div className="foil-legendary absolute inset-0 overflow-hidden rounded-sm opacity-20 pointer-events-none" />
       )}
 
-      {synergyDelta > 0 && (
-        <span className="absolute -top-2 -left-2 bg-[var(--color-gold)] text-black text-[9px] px-1.5 py-0.5 rounded font-display font-bold z-10">
-          +{synergyDelta}%
-        </span>
-      )}
-
-      <div
-        className="font-display text-[10px] uppercase tracking-widest text-center py-0.5"
-        style={{ color: colors.border }}
-      >
-        {RARITY_COLORS[rarity].label}
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-center gap-0.5 border-t border-b border-black/10 py-1.5">
-        <span className="font-display text-lg leading-none text-center">
-          {player.name.split(" ").pop()}
-        </span>
-        <span className="text-[10px] opacity-70 text-center leading-tight line-clamp-2">
-          {player.name}
-        </span>
-        <span className="text-[10px] font-bold mt-0.5">
-          {player.nation} &apos;{String(player.year).slice(-2)}
-        </span>
-        <span className="text-[10px] opacity-60">{player.position}</span>
-      </div>
-
-      <div className="space-y-0.5 py-1 px-0.5">
-        <MiniStat label="PAC" value={pace} hidden={!showStats} />
-        <MiniStat label="FIN" value={shooting} hidden={!showStats} />
-        <MiniStat label="PAS" value={passing} hidden={!showStats} />
-        <MiniStat label="DEF" value={defending} hidden={!showStats} />
-        <MiniStat label="FIS" value={physical} hidden={!showStats} />
-      </div>
-
-      <div className="text-center py-0.5">
-        {showStats ? (
-          <span
-            className="font-display text-xl"
-            style={{ color: colors.border }}
-          >
-            {player.ovr}
-          </span>
-        ) : (
-          <span className="text-lg opacity-40">???</span>
+      <div className="relative z-10 flex flex-col gap-1">
+        {hasChemistry && (
+          <div className="flex flex-col items-center gap-0.5 rounded bg-black/5 px-1 py-1">
+            {synergyDelta > 0 && (
+              <span className="bg-[var(--color-gold)] text-black text-[8px] px-1.5 py-0.5 rounded font-display font-bold leading-none">
+                +{synergyDelta}%
+              </span>
+            )}
+            {synergyNotes.length > 0 && (
+              <p className="text-[7px] text-center text-[var(--color-gold)] leading-snug w-full">
+                {synergyNotes[0]}
+              </p>
+            )}
+          </div>
         )}
-      </div>
 
-      {synergyNotes.length > 0 && (
-        <p className="text-[8px] text-center text-[var(--color-gold)] opacity-80 leading-tight px-1">
-          {synergyNotes[0]}
-        </p>
-      )}
+        <div
+          className="font-display text-[10px] uppercase tracking-widest text-center"
+          style={{ color: colors.border }}
+        >
+          {colors.label}
+        </div>
+
+        <div className="flex flex-col items-center gap-0.5 border-t border-b border-black/10 py-1">
+          <span className="font-display text-lg leading-none text-center">
+            {player.name.split(" ").pop()}
+          </span>
+          <span className="text-[10px] opacity-70 text-center leading-tight line-clamp-2">
+            {player.name}
+          </span>
+          <span className="text-[10px] font-bold">
+            {player.nation} &apos;{String(player.year).slice(-2)}
+          </span>
+          <span className="text-[10px] opacity-60">{player.position}</span>
+        </div>
+
+        <div className="space-y-0.5 px-0.5">
+          <MiniStat label="PAC" value={pace} hidden={!showStats} />
+          <MiniStat label="FIN" value={shooting} hidden={!showStats} />
+          <MiniStat label="PAS" value={passing} hidden={!showStats} />
+          <MiniStat label="DEF" value={defending} hidden={!showStats} />
+          <MiniStat label="FIS" value={physical} hidden={!showStats} />
+        </div>
+
+        <div className="text-center pt-0.5">
+          {showStats ? (
+            <span
+              className="font-display text-xl"
+              style={{ color: colors.border }}
+            >
+              {player.ovr}
+            </span>
+          ) : (
+            <span className="text-lg opacity-40">???</span>
+          )}
+        </div>
+      </div>
 
       {mode === "almanac" && onScout && !scouted && (
         <button
@@ -168,7 +177,7 @@ export const PlayerCard = memo(function PlayerCard({
             e.stopPropagation();
             onScout();
           }}
-          className="absolute -top-2 -right-2 bg-[var(--color-broadcast)] text-[var(--color-gold)] text-[9px] px-1.5 py-0.5 rounded font-display tracking-wide border border-[var(--color-gold)]"
+          className="absolute top-1 right-1 z-20 bg-[var(--color-broadcast)] text-[var(--color-gold)] text-[9px] px-1.5 py-0.5 rounded font-display tracking-wide border border-[var(--color-gold)]"
         >
           SCOUT
         </button>
