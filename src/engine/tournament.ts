@@ -8,6 +8,7 @@ import type {
 } from "./types";
 import { applyFixtureResult } from "./standings";
 import { OPPONENT_NAMES, PHASE_STRENGTH, simulateAiMatch } from "./simulation";
+import { getOpponentProfile } from "./opponents";
 import { createRng, randomInt } from "./rng";
 
 const KNOCKOUT_PHASES: TournamentPhase[] = [
@@ -162,6 +163,7 @@ export function createKnockoutMatch(
     name,
     phase,
     strength: PHASE_STRENGTH[phase],
+    profile: getOpponentProfile(name),
   };
 
   return {
@@ -211,5 +213,6 @@ export function getOpponentForUserFixture(
     name: team.name,
     phase: "groups",
     strength: team.strength,
+    profile: getOpponentProfile(team.name),
   };
 }

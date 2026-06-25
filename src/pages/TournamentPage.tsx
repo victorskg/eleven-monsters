@@ -8,15 +8,39 @@ import {
   getOpponentForUserFixture,
   getPhaseLabel,
 } from "../engine/tournament";
+import { StyleSliders } from "../components/tactics/StyleSliders";
 import { Button } from "../components/ui/Button";
 import { ScreenLayout } from "../components/ui/ScreenLayout";
 import { useGameStore } from "../stores/gameStore";
-import type { Player } from "../engine/types";
+import type { Opponent, Player } from "../engine/types";
+
+function OpponentProfileCard({ opponent }: { opponent: Opponent }) {
+  const { profile } = opponent;
+  return (
+    <div className="rounded border border-white/10 bg-black/30 p-4 space-y-2 text-sm">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display tracking-widest text-[var(--color-gold)]">
+          {opponent.name}
+        </h3>
+        <span className="text-xs opacity-60">Força {opponent.strength}</span>
+      </div>
+      <p>
+        <span className="opacity-60">Estilo:</span>{" "}
+        <span className="font-bold">{profile.trait}</span>
+      </p>
+      <p className="text-xs opacity-70">{profile.strengthNote}</p>
+      <p className="text-xs text-yellow-400/80">
+        Fraqueza: {profile.weakness}
+      </p>
+    </div>
+  );
+}
 
 export const TournamentPage = memo(function TournamentPage() {
   const tournament = useGameStore((s) => s.tournament);
   const draftSlots = useGameStore((s) => s.draftSlots);
   const playStyle = useGameStore((s) => s.playStyle);
+  const setPlayStyle = useGameStore((s) => s.setPlayStyle);
   const simulateCurrentMatch = useGameStore((s) => s.simulateCurrentMatch);
   const simulateAllMatches = useGameStore((s) => s.simulateAllMatches);
 
@@ -51,14 +75,22 @@ export const TournamentPage = memo(function TournamentPage() {
     ? getOpponentForUserFixture(tournament, currentFixture.id)
     : null;
 
-  const preview =
-    currentOpponent && !currentFixture?.played
-      ? estimateMatchPreview(ratings, currentOpponent)
-      : null;
-
   const currentKnockout =
     tournament.stage === "knockout"
       ? tournament.knockoutMatches[tournament.currentKnockoutIndex]
+      : null;
+
+  const activeOpponent =
+    currentOpponent ??
+    (currentKnockout && !currentKnockout.result
+      ? currentKnockout.opponent
+      : null);
+
+  const preview =
+    activeOpponent &&
+    ((currentFixture && !currentFixture.played) ||
+      (currentKnockout && !currentKnockout.result))
+      ? estimateMatchPreview(ratings, activeOpponent, playStyle)
       : null;
 
   const playedKnockout = tournament.knockoutMatches.filter((m) => m.result);
@@ -246,10 +278,26 @@ export const TournamentPage = memo(function TournamentPage() {
             <p className="font-display text-xl tracking-wide">
               vs {currentKnockout.opponent.name}
             </p>
-            <p className="text-xs opacity-50 mt-1">
-              Força adversária: {currentKnockout.opponent.strength}
-            </p>
           </motion.div>
+        )}
+
+        {canSimulate && activeOpponent && (
+          <div className="space-y-4">
+            <h3 className="font-display text-sm tracking-widest text-[var(--color-gold)]">
+              Preparação
+            </h3>
+            <OpponentProfileCard opponent={activeOpponent} />
+            <div className="rounded border border-white/10 bg-black/30 p-4">
+              <h4 className="font-display text-sm tracking-widest text-[var(--color-gold)] mb-4">
+                Ajustar Tática
+              </h4>
+              <StyleSliders
+                playStyle={playStyle}
+                onChange={setPlayStyle}
+                idPrefix="tournament"
+              />
+            </div>
+          </div>
         )}
 
         {preview && (
@@ -276,6 +324,11 @@ export const TournamentPage = memo(function TournamentPage() {
               <span>Empate {(preview.drawChance * 100).toFixed(0)}%</span>
               <span>Derrota {(preview.lossChance * 100).toFixed(0)}%</span>
             </div>
+            <ul className="text-xs opacity-70 space-y-1 border-t border-white/10 pt-3">
+              {preview.factors.map((f) => (
+                <li key={f}>• {f}</li>
+              ))}
+            </ul>
           </div>
         )}
 

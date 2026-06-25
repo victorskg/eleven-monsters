@@ -5,18 +5,31 @@ import {
   pickScorer,
   simulateMatch,
   simulateAiMatch,
+  simulateFirstHalf,
+  simulateSecondHalf,
 } from "./simulation";
+import { calculateMatchupModifier } from "./matchups";
+import {
+  calculateChemistryBonus,
+  previewChemistryDelta,
+} from "./chemistry";
 import { calculateTeamRatings } from "./ratings";
 import { getRarity } from "./rarities";
+import { getOpponentProfile } from "./opponents";
 import { generateTournament, simulateAiFixturesForRound } from "./tournament";
 import {
   applyFixtureResult,
   computeStandings,
   isUserQualified,
 } from "./standings";
-import type { Player, TournamentGroup } from "./types";
+import type { Opponent, Player, TournamentGroup } from "./types";
 
-const mockPlayer = (id: string, ovr: number, position: Player["position"]): Player => ({
+const mockPlayer = (
+  id: string,
+  ovr: number,
+  position: Player["position"],
+  overrides: Partial<Player> = {},
+): Player => ({
   id,
   name: `Player ${id}`,
   nation: "BRA",
@@ -31,7 +44,22 @@ const mockPlayer = (id: string, ovr: number, position: Player["position"]): Play
     defending: ovr,
     physical: ovr,
   },
+  ...overrides,
 });
+
+function mockOpponent(
+  name: string,
+  strength: number,
+  phase: Opponent["phase"] = "groups",
+): Opponent {
+  return {
+    id: "1",
+    name,
+    phase,
+    strength,
+    profile: getOpponentProfile(name),
+  };
+}
 
 const mockPool: Player[] = [
   mockPlayer("gk1", 88, "GK"),
@@ -70,6 +98,57 @@ describe("draft", () => {
   });
 });
 
+describe("matchups", () => {
+  it("favors high pressing vs low tempo opponent", () => {
+    const favorable = calculateMatchupModifier(
+      { pressing: 80, width: 50, tempo: 50 },
+      { pressing: 30, width: 40, tempo: 25 },
+    );
+    const unfavorable = calculateMatchupModifier(
+      { pressing: 30, width: 40, tempo: 25 },
+      { pressing: 80, width: 50, tempo: 50 },
+    );
+    expect(favorable.attackMod).toBeGreaterThan(unfavorable.attackMod);
+  });
+
+  it("increases goalsFor with favorable matchup in lambdas", () => {
+    const base = calculateLambdas(85, 85, 75);
+    const boosted = calculateLambdas(85, 85, 75, 1, {
+      attackMod: 1.1,
+      defenseMod: 1.1,
+    });
+    expect(boosted.goalsFor).toBeGreaterThan(base.goalsFor);
+  });
+});
+
+describe("chemistry", () => {
+  it("previewChemistryDelta detects squad synergy", () => {
+    const roster = [
+      mockPlayer("a", 85, "CB", { squadId: "bra-1970", name: "A" }),
+      mockPlayer("b", 85, "CM", { squadId: "bra-1970", name: "B" }),
+    ];
+    const candidate = mockPlayer("c", 80, "ST", {
+      squadId: "bra-1970",
+      name: "C",
+    });
+    const delta = previewChemistryDelta(roster, candidate);
+    expect(delta.deltaPercent).toBeGreaterThan(0);
+    expect(delta.newNotes.length).toBeGreaterThan(0);
+  });
+
+  it("squad synergy bonus exceeds isolated legendary pair threshold at 5 players", () => {
+    const squadTeam = Array.from({ length: 5 }, (_, i) =>
+      mockPlayer(`s${i}`, 85, "CM", { squadId: "bra-1970", name: `P${i}` }),
+    );
+    const isolated = [
+      mockPlayer("leg", 99, "ST", { name: "Pelé", squadId: "bra-1970" }),
+    ];
+    expect(calculateChemistryBonus(squadTeam)).toBeGreaterThan(
+      calculateChemistryBonus(isolated),
+    );
+  });
+});
+
 describe("simulation", () => {
   it("higher attack yields more expected goals", () => {
     const weak = calculateLambdas(70, 70, 85);
@@ -81,7 +160,7 @@ describe("simulation", () => {
     const result = simulateMatch(
       fullTeam,
       { pressing: 50, width: 50, tempo: 50 },
-      { id: "1", name: "Test", phase: "groups", strength: 75 },
+      mockOpponent("Grécia 2004", 75),
       42,
     );
     expect(result.homeGoals).toBeGreaterThanOrEqual(0);
@@ -94,7 +173,7 @@ describe("simulation", () => {
     const result = simulateMatch(
       fullTeam,
       { pressing: 50, width: 50, tempo: 50 },
-      { id: "1", name: "Grécia 2004", phase: "groups", strength: 75 },
+      mockOpponent("Grécia 2004", 75),
       123,
     );
     for (const ev of result.events) {
@@ -117,7 +196,7 @@ describe("simulation", () => {
       const result = simulateMatch(
         fullTeam,
         { pressing: 50, width: 50, tempo: 50 },
-        { id: "1", name: "Test", phase: "round16", strength: 80 },
+        mockOpponent("Test", 80, "round16"),
         seed,
       );
       if (result.wentToExtraTime) {
@@ -133,6 +212,40 @@ describe("simulation", () => {
     const { homeGoals, awayGoals } = simulateAiMatch(80, 75, 99);
     expect(homeGoals).toBeGreaterThanOrEqual(0);
     expect(awayGoals).toBeGreaterThanOrEqual(0);
+  });
+
+  it("halftime split is deterministic with same seed and choice", () => {
+    const opponent = mockOpponent("Holanda 1974", 83, "quarter");
+    const style = { pressing: 60, width: 55, tempo: 60 };
+    const seed = 4242;
+
+    const partial1 = simulateFirstHalf(fullTeam, style, opponent, seed);
+    const result1 = simulateSecondHalf(partial1, "push");
+
+    const partial2 = simulateFirstHalf(fullTeam, style, opponent, seed);
+    const result2 = simulateSecondHalf(partial2, "push");
+
+    expect(partial1.homeGoalsHT).toBe(partial2.homeGoalsHT);
+    expect(result1.homeGoals).toBe(result2.homeGoals);
+    expect(result1.awayGoals).toBe(result2.awayGoals);
+  });
+
+  it("push choice affects second half differently than hold", () => {
+    const opponent = mockOpponent("Grécia 2004", 72);
+    const style = { pressing: 50, width: 50, tempo: 50 };
+    let pushGoals = 0;
+    let holdGoals = 0;
+    const runs = 100;
+
+    for (let seed = 0; seed < runs; seed++) {
+      const partial = simulateFirstHalf(fullTeam, style, opponent, seed);
+      const push = simulateSecondHalf(partial, "push");
+      const hold = simulateSecondHalf(partial, "hold");
+      pushGoals += push.homeGoals - partial.homeGoalsHT;
+      holdGoals += hold.homeGoals - partial.homeGoalsHT;
+    }
+
+    expect(pushGoals).not.toBe(holdGoals);
   });
 });
 
@@ -160,6 +273,20 @@ describe("tournament", () => {
     expect(t.group.userMatchIds).toHaveLength(3);
     expect(t.group.fixtures).toHaveLength(6);
     expect(t.knockoutMatches).toHaveLength(0);
+  });
+
+  it("opponents have tactical profiles", () => {
+    const t = generateTournament(1234);
+    const opp = t.group.teams.find((team) => !team.isUser)!;
+    const opponent = {
+      id: opp.id,
+      name: opp.name,
+      phase: "groups" as const,
+      strength: opp.strength,
+      profile: getOpponentProfile(opp.name),
+    };
+    expect(opponent.profile.trait).toBeTruthy();
+    expect(opponent.profile.playStyle).toBeDefined();
   });
 
   it("simulates AI fixtures per round", () => {
@@ -242,7 +369,7 @@ describe("goal balance", () => {
       const result = simulateMatch(
         team,
         { pressing: 50, width: 50, tempo: 50 },
-        { id: "1", name: "Test", phase: "groups", strength: 75 },
+        mockOpponent("Grécia 2004", 75),
         seed,
       );
       totalGoals += result.homeGoalsRegular + result.awayGoalsRegular;

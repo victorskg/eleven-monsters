@@ -1,12 +1,14 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { PackOffer, Player } from "../../engine/types";
+import { previewChemistryDelta } from "../../engine/chemistry";
 import { getRarity, maxRarity, RARITY_COLORS } from "../../engine/rarities";
 import { PlayerCard } from "./PlayerCard";
 
 interface PackOpeningProps {
   pack: PackOffer;
   mode: "classic" | "almanac";
+  currentRoster: Player[];
   scoutedPlayerId: string | null;
   onSelect: (player: Player) => void;
   onScout: (playerId: string) => void;
@@ -28,6 +30,7 @@ const SHAKE_DURATION: Record<string, number> = {
 export const PackOpening = memo(function PackOpening({
   pack,
   mode,
+  currentRoster,
   scoutedPlayerId,
   onSelect,
   onScout,
@@ -131,13 +134,16 @@ export const PackOpening = memo(function PackOpening({
           animate={{ opacity: 1 }}
           className="grid w-full grid-cols-3 gap-2 sm:gap-4"
         >
-          {pack.players.map((player, i) =>
-            i < revealedCount || phase === "done" ? (
+          {pack.players.map((player, i) => {
+            const delta = previewChemistryDelta(currentRoster, player);
+            return i < revealedCount || phase === "done" ? (
               <div key={player.id} className="flex justify-center">
                 <PlayerCard
                   player={player}
                   mode={mode}
                   scouted={scoutedPlayerId === player.id}
+                  synergyDelta={delta.deltaPercent}
+                  synergyNotes={delta.newNotes}
                   onClick={phase === "done" ? () => onSelect(player) : undefined}
                   onScout={
                     phase === "done" && scoutLeft > 0
@@ -150,8 +156,8 @@ export const PackOpening = memo(function PackOpening({
               </div>
             ) : (
               <div key={player.id} className="flex justify-center opacity-0" aria-hidden />
-            ),
-          )}
+            );
+          })}
         </motion.div>
       )}
 

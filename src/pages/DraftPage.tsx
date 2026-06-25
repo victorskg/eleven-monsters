@@ -1,11 +1,13 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import { PitchField, getNextEmptySlot } from "../components/draft/PitchField";
 import { PackOpening } from "../components/draft/PackOpening";
+import { ChemistryPanel } from "../components/draft/ChemistryPanel";
 import { Button } from "../components/ui/Button";
 import { ScreenLayout } from "../components/ui/ScreenLayout";
 import { useGameStore } from "../stores/gameStore";
+import type { Player } from "../engine/types";
 
 export const DraftPage = memo(function DraftPage() {
   const draftSlots = useGameStore((s) => s.draftSlots);
@@ -26,6 +28,14 @@ export const DraftPage = memo(function DraftPage() {
   const filled = draftSlots.filter((s) => s.player).length;
   const showOverlay = Boolean(currentPack);
 
+  const currentRoster = useMemo(
+    () =>
+      draftSlots
+        .map((s) => s.player)
+        .filter((p): p is Player => p !== null),
+    [draftSlots],
+  );
+
   const overlay = showOverlay
     ? createPortal(
         <motion.div
@@ -41,6 +51,7 @@ export const DraftPage = memo(function DraftPage() {
             <PackOpening
               pack={currentPack!}
               mode={mode}
+              currentRoster={currentRoster}
               scoutedPlayerId={scoutedPlayerId}
               onSelect={selectPlayer}
               onScout={scoutPlayer}
@@ -69,41 +80,48 @@ export const DraftPage = memo(function DraftPage() {
       title="DRAFT"
       subtitle={`${filled}/11 jogadores`}
     >
-      <div className="mx-auto flex w-full max-w-4xl flex-col items-center">
-        <div
-          className={`w-full transition-all duration-300 ${
-            showOverlay ? "scale-[0.98] opacity-30" : ""
-          }`}
-        >
-          <PitchField
-            slots={draftSlots}
-            formationId={formationId}
-            currentSlotId={nextSlot?.slotId}
-            mode={mode}
-            size="large"
-          />
+      <div className="mx-auto flex w-full max-w-5xl flex-col lg:flex-row gap-6 items-start justify-center">
+        <div className="flex-1 flex flex-col items-center w-full">
+          <div
+            className={`w-full transition-all duration-300 ${
+              showOverlay ? "scale-[0.98] opacity-30" : ""
+            }`}
+          >
+            <PitchField
+              slots={draftSlots}
+              formationId={formationId}
+              currentSlotId={nextSlot?.slotId}
+              mode={mode}
+              size="large"
+            />
+          </div>
+
+          {overlay}
+
+          {!showOverlay && (
+            <div className="mt-6 flex flex-col items-center gap-3">
+              {nextSlot ? (
+                <>
+                  <p className="font-display text-lg tracking-widest text-[var(--color-gold)]">
+                    Próxima posição: {nextSlot.label}
+                  </p>
+                  <Button size="lg" onClick={openPack}>
+                    Abrir Pacote
+                  </Button>
+                </>
+              ) : (
+                <p className="font-display text-xl text-[var(--color-gold)]">
+                  Escalação completa!
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
-        {overlay}
-
-        {!showOverlay && (
-          <div className="mt-6 flex flex-col items-center gap-3">
-            {nextSlot ? (
-              <>
-                <p className="font-display text-lg tracking-widest text-[var(--color-gold)]">
-                  Próxima posição: {nextSlot.label}
-                </p>
-                <Button size="lg" onClick={openPack}>
-                  Abrir Pacote
-                </Button>
-              </>
-            ) : (
-              <p className="font-display text-xl text-[var(--color-gold)]">
-                Escalação completa!
-              </p>
-            )}
-          </div>
-        )}
+        <ChemistryPanel
+          players={currentRoster}
+          className="w-full lg:w-64 lg:sticky lg:top-4 shrink-0"
+        />
       </div>
     </ScreenLayout>
   );

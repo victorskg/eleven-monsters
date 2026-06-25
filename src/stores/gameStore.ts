@@ -3,8 +3,11 @@ import type {
   FormationId,
   GameMode,
   GameScreen,
+  HalftimeChoice,
+  MatchPhase,
   MatchResult,
   PackOffer,
+  PartialMatchState,
   Player,
   PlayStyle,
   TournamentState,
@@ -20,7 +23,11 @@ import {
   getOpponentForUserFixture,
   simulateAiFixturesForRound,
 } from "../engine/tournament";
-import { simulateMatch } from "../engine/simulation";
+import {
+  simulateFirstHalf,
+  simulateSecondHalf,
+  simulateMatch,
+} from "../engine/simulation";
 import {
   applyFixtureResult,
   isUserQualified,
@@ -43,6 +50,8 @@ interface GameStore {
   eliminated: boolean;
   rngSeed: number;
   lastMatchResult: MatchResult | null;
+  partialMatch: PartialMatchState | null;
+  matchPhase: MatchPhase;
 
   setScreen: (screen: GameScreen) => void;
   startGame: (mode: GameMode, formationId: FormationId) => void;
@@ -54,6 +63,9 @@ interface GameStore {
   setPackAnimating: (v: boolean) => void;
   finishDraft: () => void;
   simulateCurrentMatch: () => void;
+  applyHalftimeChoice: (choice: HalftimeChoice) => void;
+  setMatchPhase: (phase: MatchPhase) => void;
+  completeMatchView: () => void;
   simulateAllMatches: () => void;
   reset: () => void;
 }
@@ -134,6 +146,49 @@ function processGroupAfterUserMatch(
   return updated;
 }
 
+function finalizeMatch(
+  tournament: TournamentState,
+  result: MatchResult,
+  rngSeed: number,
+): { tournament: TournamentState; champion: boolean; eliminated: boolean } {
+  let updated = { ...tournament };
+  let champion = false;
+  let eliminated = false;
+
+  if (updated.stage === "group" && !updated.groupComplete) {
+    const fixture = getCurrentUserFixture(updated);
+    if (!fixture) return { tournament: updated, champion, eliminated };
+
+    const group = applyFixtureResult(
+      updated.group,
+      fixture.id,
+      result.homeGoalsRegular,
+      result.awayGoalsRegular,
+    );
+    const fixtures = group.fixtures.map((f) =>
+      f.id === fixture.id ? { ...f, result } : f,
+    );
+    updated = { ...updated, group: { ...group, fixtures } };
+    updated = processGroupAfterUserMatch(updated, rngSeed);
+
+    if (updated.groupComplete && !updated.qualified) {
+      eliminated = true;
+    }
+  } else if (updated.stage === "knockout") {
+    const knockoutMatches = updated.knockoutMatches.map((m, i) =>
+      i === updated.currentKnockoutIndex ? { ...m, result } : m,
+    );
+    updated = { ...updated, knockoutMatches };
+
+    const processed = processKnockoutAfterMatch(updated, result, rngSeed);
+    updated = processed.tournament;
+    champion = processed.champion;
+    eliminated = processed.eliminated;
+  }
+
+  return { tournament: updated, champion, eliminated };
+}
+
 function processKnockoutAfterMatch(
   tournament: TournamentState,
   result: MatchResult,
@@ -170,6 +225,27 @@ function processKnockoutAfterMatch(
   return { tournament: updated, champion, eliminated };
 }
 
+function getMatchSeed(tournament: TournamentState, rngSeed: number): number {
+  if (tournament.stage === "group") {
+    return rngSeed + tournament.currentUserFixtureIndex * 31337;
+  }
+  return rngSeed + 50000 + tournament.currentKnockoutIndex * 31337;
+}
+
+function getCurrentOpponent(tournament: TournamentState) {
+  if (tournament.stage === "group" && !tournament.groupComplete) {
+    const fixture = getCurrentUserFixture(tournament);
+    if (!fixture || fixture.played) return null;
+    return getOpponentForUserFixture(tournament, fixture.id);
+  }
+  if (tournament.stage === "knockout") {
+    const koMatch = tournament.knockoutMatches[tournament.currentKnockoutIndex];
+    if (!koMatch || koMatch.result) return null;
+    return koMatch.opponent;
+  }
+  return null;
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
   screen: "home",
   mode: "classic",
@@ -187,6 +263,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   eliminated: false,
   rngSeed: newSeed(),
   lastMatchResult: null,
+  partialMatch: null,
+  matchPhase: "idle",
 
   setScreen: (screen) => set({ screen }),
 
@@ -209,6 +287,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       eliminated: false,
       rngSeed: seed,
       lastMatchResult: null,
+      partialMatch: null,
+      matchPhase: "idle",
     });
   },
 
@@ -311,82 +391,48 @@ export const useGameStore = create<GameStore>((set, get) => ({
       .filter((p): p is Player => p !== null);
     if (players.length < 11) return;
 
-    let tournament = { ...state.tournament };
-    let champion = false;
-    let eliminated = false;
-    let result: MatchResult;
+    const opponent = getCurrentOpponent(state.tournament);
+    if (!opponent) return;
 
-    if (tournament.stage === "group" && !tournament.groupComplete) {
-      const fixture = getCurrentUserFixture(tournament);
-      if (!fixture || fixture.played) return;
-
-      const opponent = getOpponentForUserFixture(tournament, fixture.id);
-      if (!opponent) return;
-
-      result = simulateMatch(
-        players,
-        state.playStyle,
-        opponent,
-        state.rngSeed + tournament.currentUserFixtureIndex * 31337,
-      );
-
-      const group = applyFixtureResult(
-        tournament.group,
-        fixture.id,
-        result.homeGoalsRegular,
-        result.awayGoalsRegular,
-      );
-
-      const fixtures = group.fixtures.map((f) =>
-        f.id === fixture.id ? { ...f, result } : f,
-      );
-
-      tournament = {
-        ...tournament,
-        group: { ...group, fixtures },
-      };
-
-      tournament = processGroupAfterUserMatch(tournament, state.rngSeed);
-
-      if (tournament.groupComplete && !tournament.qualified) {
-        eliminated = true;
-      }
-    } else if (tournament.stage === "knockout") {
-      const koMatch = tournament.knockoutMatches[tournament.currentKnockoutIndex];
-      if (!koMatch || koMatch.result) return;
-
-      result = simulateMatch(
-        players,
-        state.playStyle,
-        koMatch.opponent,
-        state.rngSeed + 50000 + tournament.currentKnockoutIndex * 31337,
-      );
-
-      const knockoutMatches = tournament.knockoutMatches.map((m, i) =>
-        i === tournament.currentKnockoutIndex ? { ...m, result } : m,
-      );
-      tournament = { ...tournament, knockoutMatches };
-
-      const processed = processKnockoutAfterMatch(
-        tournament,
-        result,
-        state.rngSeed,
-      );
-      tournament = processed.tournament;
-      champion = processed.champion;
-      eliminated = processed.eliminated;
-    } else {
-      return;
-    }
+    const seed = getMatchSeed(state.tournament, state.rngSeed);
+    const partial = simulateFirstHalf(players, state.playStyle, opponent, seed);
 
     set({
-      tournament,
-      lastMatchResult: result!,
-      champion,
-      eliminated,
+      partialMatch: partial,
+      matchPhase: "first_half",
+      lastMatchResult: null,
       screen: "match",
     });
   },
+
+  applyHalftimeChoice: (choice) => {
+    const state = get();
+    if (!state.partialMatch) return;
+
+    const result = simulateSecondHalf(state.partialMatch, choice);
+    const { tournament, champion, eliminated } = finalizeMatch(
+      state.tournament,
+      result,
+      state.rngSeed,
+    );
+
+    set({
+      tournament,
+      lastMatchResult: result,
+      partialMatch: { ...state.partialMatch, halftimeChoice: choice },
+      matchPhase: "second_half",
+      champion,
+      eliminated,
+    });
+  },
+
+  setMatchPhase: (phase) => set({ matchPhase: phase }),
+
+  completeMatchView: () =>
+    set({
+      partialMatch: null,
+      matchPhase: "idle",
+    }),
 
   simulateAllMatches: () => {
     const state = get();
@@ -411,7 +457,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         players,
         state.playStyle,
         opponent,
-        state.rngSeed + tournament.currentUserFixtureIndex * 31337,
+        getMatchSeed(tournament, state.rngSeed),
+        "maintain",
       );
       lastResult = result;
 
@@ -441,7 +488,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         players,
         state.playStyle,
         koMatch.opponent,
-        state.rngSeed + 50000 + tournament.currentKnockoutIndex * 31337,
+        getMatchSeed(tournament, state.rngSeed),
+        "maintain",
       );
       lastResult = result;
 
@@ -465,6 +513,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       lastMatchResult: lastResult,
       champion,
       eliminated,
+      partialMatch: null,
+      matchPhase: "idle",
       screen: "result",
     });
   },
@@ -478,5 +528,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       champion: false,
       eliminated: false,
       lastMatchResult: null,
+      partialMatch: null,
+      matchPhase: "idle",
     }),
 }));

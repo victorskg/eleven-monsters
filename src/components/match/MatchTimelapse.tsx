@@ -1,10 +1,17 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { GoalEvent, MatchResult } from "../../engine/types";
+import type { GoalEvent } from "../../engine/types";
 
 interface MatchTimelapseProps {
-  result: MatchResult;
+  events: GoalEvent[];
   opponentName: string;
+  endMinute: number;
+  startMinute?: number;
+  initialHomeScore?: number;
+  initialAwayScore?: number;
+  wentToExtraTime?: boolean;
+  paused?: boolean;
+  onHalftimeReached?: () => void;
   onComplete: () => void;
 }
 
@@ -22,24 +29,48 @@ function formatClock(minute: number, wentToET: boolean): string {
 }
 
 export const MatchTimelapse = memo(function MatchTimelapse({
-  result,
+  events,
   opponentName,
+  endMinute,
+  startMinute = 0,
+  initialHomeScore = 0,
+  initialAwayScore = 0,
+  wentToExtraTime = false,
+  paused = false,
+  onHalftimeReached,
   onComplete,
 }: MatchTimelapseProps) {
-  const [minute, setMinute] = useState(0);
-  const [homeScore, setHomeScore] = useState(0);
-  const [awayScore, setAwayScore] = useState(0);
+  const [minute, setMinute] = useState(startMinute);
+  const [homeScore, setHomeScore] = useState(initialHomeScore);
+  const [awayScore, setAwayScore] = useState(initialAwayScore);
   const [visibleEvents, setVisibleEvents] = useState<GoalEvent[]>([]);
   const onCompleteRef = useRef(onComplete);
+  const onHalftimeRef = useRef(onHalftimeReached);
+  const halftimeCalledRef = useRef(false);
   onCompleteRef.current = onComplete;
+  onHalftimeRef.current = onHalftimeReached;
 
-  const endMinute = result.wentToExtraTime ? 120 : 90;
+  const goalEvents = useMemo(
+    () => events.filter((e) => e.period !== "penalties"),
+    [events],
+  );
+  const penaltyEvent = useMemo(
+    () => events.find((e) => e.period === "penalties"),
+    [events],
+  );
 
   useEffect(() => {
-    const goalEvents = result.events.filter((e) => e.period !== "penalties");
-    const penaltyEvent = result.events.find((e) => e.period === "penalties");
+    setMinute(startMinute);
+    setHomeScore(initialHomeScore);
+    setAwayScore(initialAwayScore);
+    setVisibleEvents([]);
+    halftimeCalledRef.current = false;
+  }, [events, startMinute, initialHomeScore, initialAwayScore]);
 
-    let currentMinute = 0;
+  useEffect(() => {
+    if (paused) return;
+
+    let currentMinute = startMinute;
     let cancelled = false;
     const shownKeys = new Set<string>();
 
@@ -74,6 +105,17 @@ export const MatchTimelapse = memo(function MatchTimelapse({
         }
       }
 
+      if (
+        currentMinute === 45 &&
+        onHalftimeRef.current &&
+        !halftimeCalledRef.current
+      ) {
+        halftimeCalledRef.current = true;
+        clearInterval(interval);
+        onHalftimeRef.current();
+        return;
+      }
+
       if (currentMinute >= endMinute) {
         clearInterval(interval);
 
@@ -95,13 +137,15 @@ export const MatchTimelapse = memo(function MatchTimelapse({
       cancelled = true;
       clearInterval(interval);
     };
-  }, [result, endMinute]);
+  }, [paused, goalEvents, penaltyEvent, endMinute, startMinute]);
 
-  const progress = Math.min(100, (minute / endMinute) * 100);
+  const progress = Math.min(
+    100,
+    ((minute - startMinute) / (endMinute - startMinute)) * 100,
+  );
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-lg mx-auto">
-      {/* Placar */}
       <div className="text-center">
         <p className="font-display text-sm tracking-widest opacity-60 mb-2">
           {opponentName}
@@ -116,20 +160,19 @@ export const MatchTimelapse = memo(function MatchTimelapse({
             animate={{ scale: 1, opacity: 1 }}
             className="font-display text-2xl text-[var(--color-cream)]/70 min-w-[60px] text-center"
           >
-            {formatClock(minute, result.wentToExtraTime)}
+            {formatClock(minute, wentToExtraTime)}
           </motion.span>
           <span className="font-display text-6xl text-[var(--color-gold)]">
             {awayScore}
           </span>
         </div>
-        {result.wentToExtraTime && minute > 90 && (
+        {wentToExtraTime && minute > 90 && (
           <p className="mt-1 text-xs text-yellow-400/80 uppercase tracking-widest">
             Prorrogação
           </p>
         )}
       </div>
 
-      {/* Barra de progresso */}
       <div className="w-full h-1.5 bg-black/40 rounded-full overflow-hidden">
         <motion.div
           className="h-full bg-[var(--color-gold)]"
@@ -138,7 +181,6 @@ export const MatchTimelapse = memo(function MatchTimelapse({
         />
       </div>
 
-      {/* Feed de eventos */}
       <div className="w-full space-y-2 min-h-[120px]">
         <AnimatePresence>
           {visibleEvents.map((ev) => (

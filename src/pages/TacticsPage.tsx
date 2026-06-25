@@ -2,50 +2,12 @@ import { memo, useMemo } from "react";
 import { calculateTeamRatings } from "../engine/ratings";
 import { getChemistryNotes } from "../engine/chemistry";
 import { PitchField } from "../components/draft/PitchField";
+import { StyleSliders } from "../components/tactics/StyleSliders";
 import { Button } from "../components/ui/Button";
 import { ScreenLayout } from "../components/ui/ScreenLayout";
 import { StatBar } from "../components/ui/StatBar";
 import { useGameStore } from "../stores/gameStore";
 import type { Player } from "../engine/types";
-
-function StyleSlider({
-  label,
-  value,
-  onChange,
-  id,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  id: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between">
-        <label htmlFor={id} className="font-display text-sm tracking-wide">
-          {label}
-        </label>
-        <span className="text-sm opacity-70">{value}</span>
-      </div>
-      <input
-        id={id}
-        type="range"
-        min={0}
-        max={100}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-2 appearance-none rounded-full bg-black/40 accent-[var(--color-gold)] cursor-pointer"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={value}
-      />
-      <div className="flex justify-between text-[10px] opacity-40">
-        <span>Baixo</span>
-        <span>Alto</span>
-      </div>
-    </div>
-  );
-}
 
 export const TacticsPage = memo(function TacticsPage() {
   const draftSlots = useGameStore((s) => s.draftSlots);
@@ -93,24 +55,7 @@ export const TacticsPage = memo(function TacticsPage() {
             <h2 className="font-display text-lg tracking-widest text-[var(--color-gold)]">
               Estilo de Jogo
             </h2>
-            <StyleSlider
-              id="pressing"
-              label="Pressão"
-              value={playStyle.pressing}
-              onChange={(v) => setPlayStyle({ pressing: v })}
-            />
-            <StyleSlider
-              id="width"
-              label="Largura"
-              value={playStyle.width}
-              onChange={(v) => setPlayStyle({ width: v })}
-            />
-            <StyleSlider
-              id="tempo"
-              label="Ritmo"
-              value={playStyle.tempo}
-              onChange={(v) => setPlayStyle({ tempo: v })}
-            />
+            <StyleSliders playStyle={playStyle} onChange={setPlayStyle} />
           </div>
 
           <div className="rounded border border-white/10 bg-black/30 p-5 space-y-4">
@@ -127,8 +72,8 @@ export const TacticsPage = memo(function TacticsPage() {
             )}
             {chemistryNotes.length > 0 && (
               <ul className="space-y-1 text-xs opacity-70">
-                {chemistryNotes.map((note) => (
-                  <li key={note}>• {note}</li>
+                {chemistryNotes.map((note, i) => (
+                  <li key={`${note}-${i}`}>• {note}</li>
                 ))}
               </ul>
             )}

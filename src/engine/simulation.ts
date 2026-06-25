@@ -1,7 +1,9 @@
 import type {
+  HalftimeChoice,
   MatchPreview,
   MatchResult,
   Opponent,
+  PartialMatchState,
   PlayStyle,
   Player,
   TeamRatings,
@@ -10,12 +12,14 @@ import type {
   MatchPeriod,
 } from "./types";
 import { calculateTeamRatings } from "./ratings";
+import { calculateMatchupModifier } from "./matchups";
 import { createRng } from "./rng";
 
-const BASE_GOALS = 0.85;
-const STRENGTH_FACTOR = 0.045;
+export const BASE_GOALS = 0.85;
+export const STRENGTH_FACTOR = 0.055;
 const MAX_LAMBDA = 1.8;
 const ET_LAMBDA_FACTOR = 0.45;
+const FIRST_HALF_FACTOR = 0.48;
 
 const SCORER_POSITIONS = new Set<Player["position"]>(["ST", "LW", "RW", "CAM", "CM"]);
 
@@ -25,10 +29,10 @@ const AWAY_SCORER_NAMES = [
 
 export const PHASE_STRENGTH: Record<TournamentPhase, number> = {
   groups: 72,
-  round16: 79,
-  quarter: 83,
-  semi: 87,
-  final: 91,
+  round16: 77,
+  quarter: 81,
+  semi: 85,
+  final: 88,
 };
 
 export const OPPONENT_NAMES: Record<TournamentPhase, string[]> = {
@@ -48,6 +52,15 @@ export const OPPONENT_NAMES: Record<TournamentPhase, string[]> = {
   final: ["Argentina 2022", "Brasil 1970", "Alemanha 2014", "Espanha 2010"],
 };
 
+const HALFTIME_MODS: Record<
+  HalftimeChoice,
+  { attackMod: number; defenseMod: number; label: string }
+> = {
+  maintain: { attackMod: 1, defenseMod: 1, label: "Manter tática" },
+  push: { attackMod: 1.12, defenseMod: 0.92, label: "Aumentar pressão" },
+  hold: { attackMod: 0.92, defenseMod: 1.1, label: "Segurar resultado" },
+};
+
 function poissonSample(lambda: number, rng: () => number): number {
   const L = Math.exp(-lambda);
   let k = 0;
@@ -59,24 +72,37 @@ function poissonSample(lambda: number, rng: () => number): number {
   return k - 1;
 }
 
+function hashChoice(seed: number, choice: HalftimeChoice): number {
+  const codes = { maintain: 0, push: 1, hold: 2 };
+  return (seed ^ (codes[choice] * 0x9e3779b9)) >>> 0;
+}
+
 export function calculateLambdas(
   teamAttack: number,
   teamDefense: number,
   opponentStrength: number,
   factor = 1,
+  matchup?: { attackMod: number; defenseMod: number },
 ): { goalsFor: number; goalsAgainst: number } {
+  const attackMod = matchup?.attackMod ?? 1;
+  const defenseMod = matchup?.defenseMod ?? 1;
+
   const goalsFor = Math.min(
     MAX_LAMBDA,
     Math.max(
       0.2,
-      (BASE_GOALS + (teamAttack - opponentStrength) * STRENGTH_FACTOR) * factor,
+      (BASE_GOALS + (teamAttack - opponentStrength) * STRENGTH_FACTOR) *
+        factor *
+        attackMod,
     ),
   );
   const goalsAgainst = Math.min(
     MAX_LAMBDA,
     Math.max(
       0.2,
-      (BASE_GOALS + (opponentStrength - teamDefense) * STRENGTH_FACTOR) * factor,
+      (BASE_GOALS + (opponentStrength - teamDefense) * STRENGTH_FACTOR) *
+        factor *
+        (2 - defenseMod),
     ),
   );
   return { goalsFor, goalsAgainst };
@@ -85,20 +111,28 @@ export function calculateLambdas(
 export function estimateMatchPreview(
   ratings: TeamRatings,
   opponent: Opponent,
+  playStyle: PlayStyle,
 ): MatchPreview {
+  const matchup = calculateMatchupModifier(playStyle, opponent.profile.playStyle);
   const { goalsFor, goalsAgainst } = calculateLambdas(
     ratings.attack,
     ratings.defense,
     opponent.strength,
+    1,
+    matchup,
   );
 
   const factors: string[] = [
     `Seu ataque (${ratings.attack}) vs defesa adversária (~${opponent.strength})`,
     `Sua defesa (${ratings.defense}) vs ataque adversário (~${opponent.strength})`,
     `Gols esperados: ${goalsFor.toFixed(1)} a favor, ${goalsAgainst.toFixed(1)} contra`,
+    `Estilo adversário: ${opponent.profile.trait}`,
   ];
   if (ratings.chemistryBonus > 0) {
     factors.push(`Bônus de química: +${ratings.chemistryBonus}%`);
+  }
+  for (const note of matchup.notes) {
+    factors.push(note);
   }
 
   const diff = goalsFor - goalsAgainst;
@@ -237,44 +271,101 @@ function resolveWinner(
   return { won: false, drew: true };
 }
 
-export function simulateMatch(
+export function simulateFirstHalf(
   players: Player[],
   playStyle: PlayStyle,
   opponent: Opponent,
   seed: number,
-): MatchResult {
+): PartialMatchState {
   const ratings = calculateTeamRatings(players, playStyle);
-  const preview = estimateMatchPreview(ratings, opponent);
+  const matchup = calculateMatchupModifier(playStyle, opponent.profile.playStyle);
   const { goalsFor, goalsAgainst } = calculateLambdas(
     ratings.attack,
     ratings.defense,
     opponent.strength,
+    FIRST_HALF_FACTOR,
+    matchup,
   );
 
   const rng = createRng(seed);
+  const homeGoalsHT = poissonSample(goalsFor, rng);
+  const awayGoalsHT = poissonSample(goalsAgainst, rng);
+
+  const firstHalfEvents = buildGoalEvents(
+    homeGoalsHT,
+    awayGoalsHT,
+    "regular",
+    1,
+    45,
+    players,
+    opponent,
+    rng,
+  );
+
+  return {
+    firstHalfEvents,
+    homeGoalsHT,
+    awayGoalsHT,
+    opponent,
+    seed,
+    playStyle,
+    players,
+    ratings,
+  };
+}
+
+export function simulateSecondHalf(
+  partial: PartialMatchState,
+  choice: HalftimeChoice,
+): MatchResult {
+  const { opponent, players, playStyle, ratings, seed, homeGoalsHT, awayGoalsHT } =
+    partial;
+
+  const matchup = calculateMatchupModifier(playStyle, opponent.profile.playStyle);
+  const htMod = HALFTIME_MODS[choice];
+  const combinedMatchup = {
+    attackMod: matchup.attackMod * htMod.attackMod,
+    defenseMod: matchup.defenseMod * htMod.defenseMod,
+  };
+
+  const secondHalfFactor = 1 - FIRST_HALF_FACTOR;
+  const { goalsFor, goalsAgainst } = calculateLambdas(
+    ratings.attack,
+    ratings.defense,
+    opponent.strength,
+    secondHalfFactor,
+    combinedMatchup,
+  );
+
+  const rng = createRng(hashChoice(seed, choice));
+  const homeSecond = poissonSample(goalsFor, rng);
+  const awaySecond = poissonSample(goalsAgainst, rng);
+
+  const homeRegular = homeGoalsHT + homeSecond;
+  const awayRegular = awayGoalsHT + awaySecond;
+
+  const secondHalfEvents = buildGoalEvents(
+    homeSecond,
+    awaySecond,
+    "regular",
+    46,
+    90,
+    players,
+    opponent,
+    rng,
+  );
+
+  const events: GoalEvent[] = [
+    ...partial.firstHalfEvents,
+    ...secondHalfEvents,
+  ];
+
   const isKnockout = opponent.phase !== "groups";
-
-  let homeRegular = poissonSample(goalsFor, rng);
-  let awayRegular = poissonSample(goalsAgainst, rng);
-
   let homeET = 0;
   let awayET = 0;
   let wentToExtraTime = false;
   let wentToPenalties = false;
   let penalties: { home: number; away: number } | undefined;
-
-  const events: GoalEvent[] = [
-    ...buildGoalEvents(
-      homeRegular,
-      awayRegular,
-      "regular",
-      1,
-      90,
-      players,
-      opponent,
-      rng,
-    ),
-  ];
 
   if (isKnockout && homeRegular === awayRegular) {
     wentToExtraTime = true;
@@ -283,6 +374,7 @@ export function simulateMatch(
       ratings.defense,
       opponent.strength,
       ET_LAMBDA_FACTOR,
+      combinedMatchup,
     );
     homeET = poissonSample(etLambdas.goalsFor, rng);
     awayET = poissonSample(etLambdas.goalsAgainst, rng);
@@ -320,6 +412,8 @@ export function simulateMatch(
   const awayGoals = awayRegular + awayET;
   const { won, drew } = resolveWinner(homeGoals, awayGoals, penalties);
 
+  const preview = estimateMatchPreview(ratings, opponent, playStyle);
+
   return {
     homeGoals,
     awayGoals,
@@ -335,6 +429,17 @@ export function simulateMatch(
     won,
     drew,
   };
+}
+
+export function simulateMatch(
+  players: Player[],
+  playStyle: PlayStyle,
+  opponent: Opponent,
+  seed: number,
+  halftimeChoice: HalftimeChoice = "maintain",
+): MatchResult {
+  const partial = simulateFirstHalf(players, playStyle, opponent, seed);
+  return simulateSecondHalf(partial, halftimeChoice);
 }
 
 export function simulateAiMatch(
@@ -354,4 +459,8 @@ export function simulateAiMatch(
   const homeGoals = poissonSample(homeLambda, rng);
   const awayGoals = poissonSample(awayLambda, rng);
   return { homeGoals, awayGoals };
+}
+
+export function getHalftimeChoiceLabel(choice: HalftimeChoice): string {
+  return HALFTIME_MODS[choice].label;
 }

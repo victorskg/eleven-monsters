@@ -87,11 +87,35 @@ export interface TeamRatings {
   chemistryBonus: number;
 }
 
+export interface OpponentProfile {
+  playStyle: PlayStyle;
+  trait: string;
+  weakness: string;
+  strengthNote: string;
+}
+
 export interface Opponent {
   id: string;
   name: string;
   phase: TournamentPhase;
   strength: number;
+  profile: OpponentProfile;
+}
+
+export type HalftimeChoice = "maintain" | "push" | "hold";
+
+export type MatchPhase = "idle" | "first_half" | "halftime" | "second_half" | "complete";
+
+export interface PartialMatchState {
+  firstHalfEvents: GoalEvent[];
+  homeGoalsHT: number;
+  awayGoalsHT: number;
+  opponent: Opponent;
+  seed: number;
+  playStyle: PlayStyle;
+  players: Player[];
+  ratings: TeamRatings;
+  halftimeChoice?: HalftimeChoice;
 }
 
 export interface MatchPreview {
