@@ -5,34 +5,36 @@ export interface ShareResultStats {
   goalsAgainst: number;
 }
 
-export function buildShareMessage(stats: ShareResultStats): string {
-  const url =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${window.location.pathname}`
-      : "https://eleven-monsters.vercel.app";
+function getShareUrl(): string {
+  return typeof window !== "undefined"
+    ? `${window.location.origin}${window.location.pathname}`
+    : "https://eleven-monsters.vercel.app";
+}
 
+function buildShareText(stats: ShareResultStats): string {
   if (stats.champion) {
-    return `🏆 Campeão no Eleven Monsters! ${stats.wins} vitórias, ${stats.goalsFor} gols marcados e ${stats.goalsAgainst} gols sofridos. Monte seu time e tente superar: ${url}`;
+    return `🏆 Campeão no Eleven Monsters! ${stats.wins} vitórias, ${stats.goalsFor} gols marcados e ${stats.goalsAgainst} gols sofridos. Monte seu time e tente superar:`;
   }
 
-  return `⚽ Joguei Eleven Monsters — ${stats.wins} vitórias e ${stats.goalsFor} gols marcados. Consegue fazer melhor? ${url}`;
+  return `⚽ Joguei Eleven Monsters — ${stats.wins} vitórias e ${stats.goalsFor} gols marcados. Consegue fazer melhor?`;
+}
+
+export function buildShareMessage(stats: ShareResultStats): string {
+  return `${buildShareText(stats)} ${getShareUrl()}`;
 }
 
 export async function shareGameResult(
   stats: ShareResultStats,
 ): Promise<"shared" | "copied"> {
-  const text = buildShareMessage(stats);
-  const url =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${window.location.pathname}`
-      : "";
+  const text = buildShareText(stats);
+  const url = getShareUrl();
 
   if (typeof navigator !== "undefined" && navigator.share) {
     try {
       await navigator.share({
         title: "Eleven Monsters",
         text,
-        url: url || undefined,
+        url,
       });
       return "shared";
     } catch (err) {
@@ -42,6 +44,6 @@ export async function shareGameResult(
     }
   }
 
-  await navigator.clipboard.writeText(text);
+  await navigator.clipboard.writeText(buildShareMessage(stats));
   return "copied";
 }
