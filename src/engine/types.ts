@@ -135,6 +135,28 @@ export interface GoalEvent {
   description: string;
 }
 
+export type HighlightPlayType = "counter" | "cross" | "set_piece" | "long_shot";
+
+export interface HighlightPhase {
+  type: "pass" | "shot";
+  from: PitchCoordinate;
+  to: PitchCoordinate;
+  fromSlotId?: string;
+  toSlotId?: string;
+  durationMs: number;
+}
+
+export interface HighlightReplay {
+  goalEvent: GoalEvent;
+  playType: HighlightPlayType;
+  phases: HighlightPhase[];
+  scorerSlotId: string;
+  passerSlotId: string;
+  cameraFocus: { x: number; y: number; scale: number };
+  opponentName: string;
+  scoreAfter: { home: number; away: number };
+}
+
 export interface MatchResult {
   homeGoals: number;
   awayGoals: number;

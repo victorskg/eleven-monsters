@@ -1,10 +1,12 @@
 import { memo, useState, useCallback, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { MatchTimelapse } from "../components/match/MatchTimelapse";
+import { MatchHighlightReplay } from "../components/match/MatchHighlightReplay";
 import { HalftimeDecision } from "../components/match/HalftimeDecision";
 import { Button } from "../components/ui/Button";
 import { ScreenLayout } from "../components/ui/ScreenLayout";
 import { useGameStore } from "../stores/gameStore";
+import { buildHighlightReplay } from "../engine/highlight";
 import { getPhaseLabel } from "../engine/tournament";
 import { buildMatchSummary } from "../engine/simulation";
 import type { MatchResult, TournamentState } from "../engine/types";
@@ -37,11 +39,16 @@ function getMatchContext(tournament: TournamentState, result: MatchResult) {
   };
 }
 
+type UiPhase = "timelapse" | "highlight" | "summary";
+
 export const MatchPage = memo(function MatchPage() {
   const lastMatchResult = useGameStore((s) => s.lastMatchResult);
   const partialMatch = useGameStore((s) => s.partialMatch);
   const matchPhase = useGameStore((s) => s.matchPhase);
   const tournament = useGameStore((s) => s.tournament);
+  const draftSlots = useGameStore((s) => s.draftSlots);
+  const formationId = useGameStore((s) => s.formationId);
+  const rngSeed = useGameStore((s) => s.rngSeed);
   const champion = useGameStore((s) => s.champion);
   const eliminated = useGameStore((s) => s.eliminated);
   const setScreen = useGameStore((s) => s.setScreen);
@@ -49,7 +56,7 @@ export const MatchPage = memo(function MatchPage() {
   const applyHalftimeChoice = useGameStore((s) => s.applyHalftimeChoice);
   const completeMatchView = useGameStore((s) => s.completeMatchView);
 
-  const [uiPhase, setUiPhase] = useState<"timelapse" | "summary">("timelapse");
+  const [uiPhase, setUiPhase] = useState<UiPhase>("timelapse");
 
   const result = lastMatchResult;
 
@@ -65,6 +72,21 @@ export const MatchPage = memo(function MatchPage() {
     return null;
   }, [tournament, result, partialMatch]);
 
+  const opponentName = matchContext?.opponentName ?? "Adversário";
+  const phaseLabel = matchContext?.phaseLabel ?? "";
+  const matchId = matchContext?.matchId ?? "unknown";
+
+  const highlightReplay = useMemo(() => {
+    if (!result) return null;
+    return buildHighlightReplay(
+      result,
+      draftSlots,
+      formationId,
+      opponentName,
+      partialMatch?.seed ?? rngSeed,
+    );
+  }, [result, draftSlots, formationId, opponentName, partialMatch?.seed, rngSeed]);
+
   useEffect(() => {
     setUiPhase("timelapse");
   }, [matchContext?.matchId]);
@@ -78,9 +100,13 @@ export const MatchPage = memo(function MatchPage() {
   }, []);
 
   const handleSecondHalfComplete = useCallback(() => {
-    setUiPhase("summary");
     completeMatchView();
-  }, [completeMatchView]);
+    setUiPhase(highlightReplay ? "highlight" : "summary");
+  }, [completeMatchView, highlightReplay]);
+
+  const handleHighlightDismiss = useCallback(() => {
+    setUiPhase("summary");
+  }, []);
 
   if (!partialMatch && !result) {
     return (
@@ -92,10 +118,6 @@ export const MatchPage = memo(function MatchPage() {
       </ScreenLayout>
     );
   }
-
-  const opponentName = matchContext?.opponentName ?? "Adversário";
-  const phaseLabel = matchContext?.phaseLabel ?? "";
-  const matchId = matchContext?.matchId ?? "unknown";
 
   if (matchPhase === "halftime" && partialMatch) {
     return (
@@ -174,6 +196,17 @@ export const MatchPage = memo(function MatchPage() {
       <ScreenLayout title="PARTIDA">
         <p className="text-center">Carregando partida...</p>
       </ScreenLayout>
+    );
+  }
+
+  if (uiPhase === "highlight" && highlightReplay) {
+    return (
+      <MatchHighlightReplay
+        replay={highlightReplay}
+        slots={draftSlots}
+        formationId={formationId}
+        onDismiss={handleHighlightDismiss}
+      />
     );
   }
 

@@ -18,6 +18,10 @@ import { getRarity } from "./rarities";
 import { getOpponentProfile } from "./opponents";
 import { generateTournament, simulateAiFixturesForRound } from "./tournament";
 import {
+  createDemoHighlightPreview,
+  pickMatchHighlight,
+} from "./highlight";
+import {
   applyFixtureResult,
   computeStandings,
   isUserQualified,
@@ -355,6 +359,66 @@ describe("standings", () => {
     group = applyFixtureResult(group, "f3", 3, 0);
     group = applyFixtureResult(group, "f5", 3, 0);
     expect(isUserQualified(group)).toBe(true);
+  });
+});
+
+describe("highlight", () => {
+  it("picks winning home goal on victory", () => {
+    const result = {
+      won: true,
+      drew: false,
+      homeGoals: 2,
+      awayGoals: 1,
+      homeGoalsRegular: 2,
+      awayGoalsRegular: 1,
+      homeGoalsET: 0,
+      awayGoalsET: 0,
+      wentToExtraTime: false,
+      wentToPenalties: false,
+      events: [
+        {
+          minute: 20,
+          team: "home" as const,
+          scorerName: "A",
+          period: "regular" as const,
+          description: "",
+        },
+        {
+          minute: 70,
+          team: "away" as const,
+          scorerName: "B",
+          period: "regular" as const,
+          description: "",
+        },
+        {
+          minute: 88,
+          team: "home" as const,
+          scorerName: "C",
+          period: "regular" as const,
+          description: "",
+        },
+      ],
+      preview: {
+        winChance: 0.5,
+        drawChance: 0.2,
+        lossChance: 0.3,
+        expectedGoalsFor: 1.5,
+        expectedGoalsAgainst: 1,
+        factors: [],
+      },
+    };
+    expect(pickMatchHighlight(result)?.scorerName).toBe("C");
+  });
+
+  it("creates demo replay with phases through player slots", () => {
+    const demo = createDemoHighlightPreview();
+    expect(demo.replay.phases.length).toBe(3);
+    expect(demo.replay.phases[0].fromSlotId).toBe("cm2");
+    expect(demo.replay.phases[0].toSlotId).toBe("rw");
+    expect(demo.replay.phases[1].fromSlotId).toBe("rw");
+    expect(demo.replay.phases[1].toSlotId).toBe("st");
+    expect(demo.replay.phases[2].type).toBe("shot");
+    expect(demo.slots).toHaveLength(11);
   });
 });
 
