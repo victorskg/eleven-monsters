@@ -30,6 +30,11 @@ const ATTR_COLORS: Record<string, string> = {
   FIS: "#f97316",
 };
 
+const NEUTRAL_CARD_STYLE = {
+  border: "var(--color-broadcast)",
+  glow: "rgba(0,0,0,0.25)",
+};
+
 function MiniStat({
   label,
   value,
@@ -78,12 +83,18 @@ export const PlayerCard = memo(function PlayerCard({
   const rarity = getRarity(player.ovr);
   const colors = RARITY_COLORS[rarity];
   const showStats = mode === "classic" || scouted;
-  const isLegendary = rarity === "legendary";
+  const showRarity = mode === "classic" || scouted;
+  const isLegendary = showRarity && rarity === "legendary";
   const hasChemistry = synergyDelta > 0 || synergyNotes.length > 0;
   const { pace, shooting, passing, defending, physical } = player.attributes;
 
-  const flipDuration =
-    rarity === "legendary" ? 0.8 : rarity === "epic" ? 0.6 : 0.4;
+  const flipDuration = !showRarity
+    ? 0.4
+    : rarity === "legendary"
+      ? 0.8
+      : rarity === "epic"
+        ? 0.6
+        : 0.4;
 
   return (
     <motion.button
@@ -103,8 +114,12 @@ export const PlayerCard = memo(function PlayerCard({
         onClick ? "cursor-pointer" : "cursor-default"
       } ${selected ? "ring-2 ring-[var(--color-gold)]" : ""}`}
       style={{
-        border: `3px solid ${colors.border}`,
-        boxShadow: `0 0 20px ${colors.glow}, 0 8px 24px rgba(0,0,0,0.4)`,
+        border: showRarity
+          ? `3px solid ${colors.border}`
+          : `3px solid ${NEUTRAL_CARD_STYLE.border}`,
+        boxShadow: showRarity
+          ? `0 0 20px ${colors.glow}, 0 8px 24px rgba(0,0,0,0.4)`
+          : `0 8px 24px ${NEUTRAL_CARD_STYLE.glow}`,
       }}
       aria-label={`${player.name}, ${player.nation} ${player.year}`}
     >
@@ -128,12 +143,14 @@ export const PlayerCard = memo(function PlayerCard({
           </div>
         )}
 
-        <div
-          className="font-display text-[10px] uppercase tracking-widest text-center"
-          style={{ color: colors.border }}
-        >
-          {colors.label}
-        </div>
+        {showRarity && (
+          <div
+            className="font-display text-[10px] uppercase tracking-widest text-center"
+            style={{ color: colors.border }}
+          >
+            {colors.label}
+          </div>
+        )}
 
         <div className="flex flex-col items-center gap-0.5 border-t border-b border-black/10 py-1">
           <span className="font-display text-lg leading-none text-center">
