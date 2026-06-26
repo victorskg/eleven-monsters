@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { useGameStore } from "./stores/gameStore";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -33,6 +34,7 @@ export default function App() {
         {screen === "match" && <MatchPage />}
         {screen === "result" && <ResultPage />}
       </Suspense>
+      <Analytics />
     </div>
   );
 }

@@ -1,0 +1,35 @@
+---
+description: Princípios de design do Eleven Monsters — habilidade > seed
+alwaysApply: true
+---
+
+# Eleven Monsters — Design
+
+**Diferencial vs 7a0:** habilidade e boas decisões pesam MAIS que seed. No 7a0 ~73% das seeds são impossíveis; aqui seed define adversários/placares, não o teto do jogador.
+
+## Pilares de agência
+
+Reforce ao implementar: **draft** (química, posição), **tática** (estilo + matchup), **intervalo** (push/hold/maintain), **conhecimento** (modo almanaque).
+
+Evite: bloqueios duros por seed, stats ocultos sem pista, adversários opacos.
+
+## Guardrails de balanceamento
+
+Após mudar `simulation.ts`, `tournament.ts`, `ratings.ts`, `chemistry.ts` ou `draft.ts`:
+
+```bash
+bun run balance && bun run test
+```
+
+Alvos mínimos (`runAgencyReport`, 3000 seeds):
+
+- Lift campeão 90 vs 80: **≥ 20 pp**
+- Elite ganha / mediano não (mesma seed): **≥ 15%**
+- Mediano ganha / elite não: **≤ 2%**
+- Time 90 não classifica: **≤ 15%**
+- Push vs maintain (OVR 85): **≥ 3 pp** campeão
+
+## Docs completos
+
+- `docs/design-principles.md` — métricas baseline, parâmetros sensíveis e checklist
+- `docs/competitor-7a0-analysis.md` — referência estruturada do 7a0 (o que não replicar)

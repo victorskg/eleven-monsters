@@ -29,10 +29,10 @@ const AWAY_SCORER_NAMES = [
 
 export const PHASE_STRENGTH: Record<TournamentPhase, number> = {
   groups: 72,
-  round16: 77,
-  quarter: 81,
-  semi: 85,
-  final: 88,
+  round16: 75,
+  quarter: 79,
+  semi: 83,
+  final: 86,
 };
 
 export const OPPONENT_NAMES: Record<TournamentPhase, string[]> = {
