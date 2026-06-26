@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "balance": "bun run scripts/balance.ts"
+    "balance": "bun run scripts/balance.ts",
+    "validate:squads": "bun run scripts/validate-squads.ts"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

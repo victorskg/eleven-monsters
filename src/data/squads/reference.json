@@ -1,0 +1,874 @@
+{
+  "version": 1,
+  "squads": {
+    "bra-1970": {
+      "source": "https://en.wikipedia.org/wiki/1970_FIFA_World_Cup_final",
+      "note": "XI da final; pool inclui Garrincha e reservas icônicas",
+      "requiredXI": [
+        "Félix",
+        "Carlos Alberto",
+        "Brito",
+        "Piazza",
+        "Everaldo",
+        "Clodoaldo",
+        "Gerson",
+        "Rivellino",
+        "Jairzinho",
+        "Pelé",
+        "Tostão"
+      ]
+    },
+    "bra-2002": {
+      "source": "https://en.wikipedia.org/wiki/2002_FIFA_World_Cup_final",
+      "note": "XI da final vs Alemanha (3-4-1-2)",
+      "requiredXI": [
+        "Marcos",
+        "Cafu",
+        "Lúcio",
+        "Roque Júnior",
+        "Edmilson",
+        "Roberto Carlos",
+        "Gilberto Silva",
+        "Kleberson",
+        "Rivaldo",
+        "Ronaldinho",
+        "Ronaldo"
+      ],
+      "pool": [
+        "Marcos",
+        "Cafu",
+        "Lúcio",
+        "Roque Júnior",
+        "Edmilson",
+        "Roberto Carlos",
+        "Gilberto Silva",
+        "Kleberson",
+        "Rivaldo",
+        "Ronaldinho",
+        "Ronaldo"
+      ]
+    },
+    "arg-1986": {
+      "source": "https://en.wikipedia.org/wiki/1986_FIFA_World_Cup_final",
+      "note": "XI da final vs Alemanha Ocidental (3-5-2)",
+      "requiredXI": [
+        "Pumpido",
+        "Brown",
+        "Cuciuffo",
+        "Ruggeri",
+        "Giusti",
+        "Batista",
+        "Burruchaga",
+        "Enrique",
+        "Olarticoechea",
+        "Maradona",
+        "Valdano"
+      ],
+      "pool": [
+        "Pumpido",
+        "Brown",
+        "Cuciuffo",
+        "Ruggeri",
+        "Giusti",
+        "Batista",
+        "Burruchaga",
+        "Enrique",
+        "Olarticoechea",
+        "Maradona",
+        "Valdano"
+      ]
+    },
+    "arg-2022": {
+      "source": "https://en.wikipedia.org/wiki/2022_FIFA_World_Cup_final",
+      "note": "XI da final vs França",
+      "requiredXI": [
+        "E. Martínez",
+        "Molina",
+        "Otamendi",
+        "C. Romero",
+        "Tagliafico",
+        "De Paul",
+        "Enzo Fernández",
+        "Mac Allister",
+        "Messi",
+        "Di María",
+        "Álvarez"
+      ]
+    },
+    "ger-2014": {
+      "source": "https://en.wikipedia.org/wiki/2014_FIFA_World_Cup_final",
+      "note": "Elenco campeão; pool de 12 craques",
+      "requiredXI": [
+        "Neuer",
+        "Lahm",
+        "Hummels",
+        "Boateng",
+        "Kroos",
+        "Schweinsteiger",
+        "Khedira",
+        "Müller",
+        "Özil",
+        "Klose",
+        "Götze"
+      ]
+    },
+    "fra-1998": {
+      "source": "https://en.wikipedia.org/wiki/1998_FIFA_World_Cup_final",
+      "note": "XI da final vs Brasil",
+      "requiredXI": [
+        "Barthez",
+        "Thuram",
+        "Desailly",
+        "Blanc",
+        "Lizarazu",
+        "Deschamps",
+        "Petit",
+        "Zidane",
+        "Djorkaeff",
+        "Henry",
+        "Guivarc'h"
+      ],
+      "pool": [
+        "Barthez",
+        "Thuram",
+        "Desailly",
+        "Blanc",
+        "Lizarazu",
+        "Deschamps",
+        "Petit",
+        "Zidane",
+        "Djorkaeff",
+        "Henry",
+        "Guivarc'h"
+      ]
+    },
+    "fra-2018": {
+      "source": "https://en.wikipedia.org/wiki/2018_FIFA_World_Cup_final",
+      "note": "XI da final vs Croácia",
+      "requiredXI": [
+        "Lloris",
+        "Pavard",
+        "Varane",
+        "Umtiti",
+        "Hernández",
+        "Kanté",
+        "Pogba",
+        "Matuidi",
+        "Griezmann",
+        "Mbappé",
+        "Giroud"
+      ],
+      "pool": [
+        "Lloris",
+        "Pavard",
+        "Varane",
+        "Umtiti",
+        "Hernández",
+        "Kanté",
+        "Pogba",
+        "Matuidi",
+        "Griezmann",
+        "Mbappé",
+        "Giroud"
+      ]
+    },
+    "ita-2006": {
+      "source": "https://en.wikipedia.org/wiki/2006_FIFA_World_Cup_final",
+      "note": "XI da final vs França",
+      "requiredXI": [
+        "Buffon",
+        "Zambrotta",
+        "Cannavaro",
+        "Materazzi",
+        "Grosso",
+        "Gattuso",
+        "Pirlo",
+        "Perrotta",
+        "Camoranesi",
+        "Toni",
+        "Totti"
+      ],
+      "pool": [
+        "Buffon",
+        "Zambrotta",
+        "Cannavaro",
+        "Materazzi",
+        "Grosso",
+        "Gattuso",
+        "Pirlo",
+        "Perrotta",
+        "Camoranesi",
+        "Toni",
+        "Totti"
+      ]
+    },
+    "ned-1974": {
+      "source": "https://en.wikipedia.org/wiki/1974_FIFA_World_Cup_final",
+      "note": "XI da final vs Alemanha Ocidental",
+      "requiredXI": [
+        "Jongbloed",
+        "Suurbier",
+        "Rijsbergen",
+        "Haan",
+        "Krol",
+        "Jansen",
+        "Neeskens",
+        "van Hanegem",
+        "Rep",
+        "Rensenbrink",
+        "Cruyff"
+      ],
+      "pool": [
+        "Jongbloed",
+        "Suurbier",
+        "Rijsbergen",
+        "Haan",
+        "Krol",
+        "Jansen",
+        "Neeskens",
+        "van Hanegem",
+        "Rep",
+        "Rensenbrink",
+        "Cruyff"
+      ]
+    },
+    "uru-1950": {
+      "source": "https://en.wikipedia.org/wiki/Uruguay_v_Brazil_(1950_FIFA_World_Cup)",
+      "note": "XI do Maracanaço (16/07/1950)",
+      "requiredXI": [
+        "Máspoli",
+        "González",
+        "Tejera",
+        "Gambetta",
+        "Varela",
+        "Andrade",
+        "Ghiggia",
+        "Pérez",
+        "Míguez",
+        "Schiaffino",
+        "Morán"
+      ],
+      "pool": [
+        "Máspoli",
+        "González",
+        "Tejera",
+        "Gambetta",
+        "Varela",
+        "Andrade",
+        "Ghiggia",
+        "Pérez",
+        "Míguez",
+        "Schiaffino",
+        "Morán"
+      ]
+    },
+    "eng-1966": {
+      "source": "https://en.wikipedia.org/wiki/1966_FIFA_World_Cup_final",
+      "note": "XI da final vs Alemanha Ocidental (4-4-2)",
+      "requiredXI": [
+        "Banks",
+        "Cohen",
+        "Jack Charlton",
+        "Moore",
+        "Ray Wilson",
+        "Stiles",
+        "Alan Ball",
+        "Bobby Charlton",
+        "Peters",
+        "Hunt",
+        "Hurst"
+      ],
+      "pool": [
+        "Banks",
+        "Cohen",
+        "Jack Charlton",
+        "Moore",
+        "Ray Wilson",
+        "Stiles",
+        "Alan Ball",
+        "Bobby Charlton",
+        "Peters",
+        "Hunt",
+        "Hurst"
+      ]
+    },
+    "esp-2010": {
+      "source": "https://en.wikipedia.org/wiki/2010_FIFA_World_Cup_final",
+      "note": "XI da final vs Holanda",
+      "requiredXI": [
+        "Casillas",
+        "Sergio Ramos",
+        "Piqué",
+        "Puyol",
+        "Capdevila",
+        "Busquets",
+        "Xavi",
+        "Iniesta",
+        "Pedro",
+        "Villa",
+        "Torres"
+      ],
+      "pool": [
+        "Casillas",
+        "Sergio Ramos",
+        "Piqué",
+        "Puyol",
+        "Capdevila",
+        "Busquets",
+        "Xavi",
+        "Iniesta",
+        "Pedro",
+        "Villa",
+        "Torres"
+      ]
+    },
+    "gre-2004": {
+      "source": "https://en.wikipedia.org/wiki/UEFA_Euro_2004_final",
+      "note": "XI da final vs Portugal",
+      "requiredXI": [
+        "Nikopolidis",
+        "Seitaridis",
+        "Kapsis",
+        "Dellas",
+        "Fyssas",
+        "Katsouranis",
+        "Zagorakis",
+        "Basinas",
+        "Giannakopoulos",
+        "Vryzas",
+        "Charisteas"
+      ],
+      "pool": [
+        "Nikopolidis",
+        "Seitaridis",
+        "Kapsis",
+        "Dellas",
+        "Fyssas",
+        "Katsouranis",
+        "Zagorakis",
+        "Basinas",
+        "Giannakopoulos",
+        "Vryzas",
+        "Charisteas"
+      ]
+    },
+    "cmr-1990": {
+      "source": "https://www.planetworldcup.com/CUPS/1990/squad_cmr90.html",
+      "note": "Pool icônico; Milla entrou como reserva na Copa",
+      "requiredXI": [
+        "N'Kono",
+        "Tataw",
+        "Kundé",
+        "Massing",
+        "Ebwelle",
+        "Mbouh",
+        "Kana",
+        "M'Fede",
+        "Milla",
+        "Omam-Biyick",
+        "Makanaky"
+      ],
+      "pool": [
+        "N'Kono",
+        "Tataw",
+        "Kundé",
+        "Massing",
+        "Ebwelle",
+        "Mbouh",
+        "Kana",
+        "M'Fede",
+        "Milla",
+        "Omam-Biyick",
+        "Makanaky"
+      ]
+    },
+    "usa-1994": {
+      "source": "https://en.wikipedia.org/wiki/1994_FIFA_World_Cup_squads#United_States",
+      "note": "XI icônico do ciclo da Copa (anfitrião)",
+      "requiredXI": [
+        "Tony Meola",
+        "Caligiuri",
+        "Balboa",
+        "Lalas",
+        "Dooley",
+        "Tab Ramos",
+        "Harkes",
+        "Reyna",
+        "Cobi Jones",
+        "Wynalda",
+        "Wegerle"
+      ],
+      "pool": [
+        "Tony Meola",
+        "Caligiuri",
+        "Balboa",
+        "Lalas",
+        "Dooley",
+        "Tab Ramos",
+        "Harkes",
+        "Reyna",
+        "Cobi Jones",
+        "Wynalda",
+        "Wegerle"
+      ]
+    },
+    "por-1966": {
+      "source": "https://www.planetworldcup.com/CUPS/1966/playoff_por_v_sov.html",
+      "note": "XI do 3º lugar vs URSS",
+      "requiredXI": [
+        "Pereira",
+        "Hilário",
+        "Baptista",
+        "José Carlos",
+        "Festa",
+        "Coluna",
+        "Graça",
+        "Simões",
+        "Augusto",
+        "Eusébio",
+        "Torres"
+      ],
+      "pool": [
+        "Pereira",
+        "Hilário",
+        "Baptista",
+        "José Carlos",
+        "Festa",
+        "Coluna",
+        "Graça",
+        "Simões",
+        "Augusto",
+        "Eusébio",
+        "Torres"
+      ]
+    },
+    "ned-1988": {
+      "source": "https://en.wikipedia.org/wiki/UEFA_Euro_1988_final",
+      "note": "XI da final vs URSS",
+      "requiredXI": [
+        "van Breukelen",
+        "van Tiggelen",
+        "Rijkaard",
+        "Koeman",
+        "van Aerle",
+        "Wouters",
+        "Mühren",
+        "Vanenburg",
+        "Gullit",
+        "van Basten",
+        "Bosman"
+      ],
+      "pool": [
+        "van Breukelen",
+        "van Tiggelen",
+        "Rijkaard",
+        "Koeman",
+        "van Aerle",
+        "Wouters",
+        "Mühren",
+        "Vanenburg",
+        "Gullit",
+        "van Basten",
+        "Bosman"
+      ]
+    },
+    "ger-1974": {
+      "source": "https://en.wikipedia.org/wiki/1974_FIFA_World_Cup_final",
+      "note": "XI da final vs Holanda",
+      "requiredXI": [
+        "Maier",
+        "Vogts",
+        "Schwarzenbeck",
+        "Beckenbauer",
+        "Breitner",
+        "Wimmer",
+        "Overath",
+        "Bonhof",
+        "Grabowski",
+        "Hoeness",
+        "Gerd Müller"
+      ],
+      "pool": [
+        "Maier",
+        "Vogts",
+        "Schwarzenbeck",
+        "Beckenbauer",
+        "Breitner",
+        "Wimmer",
+        "Overath",
+        "Bonhof",
+        "Grabowski",
+        "Hoeness",
+        "Gerd Müller"
+      ]
+    },
+    "ita-1982": {
+      "source": "https://en.wikipedia.org/wiki/1982_FIFA_World_Cup_final",
+      "note": "XI da final vs Alemanha Ocidental",
+      "requiredXI": [
+        "Zoff",
+        "Conti",
+        "Scirea",
+        "Gentile",
+        "Cabrini",
+        "Oriali",
+        "Tardelli",
+        "Antognoni",
+        "Causio",
+        "Rossi",
+        "Graziani"
+      ],
+      "pool": [
+        "Zoff",
+        "Conti",
+        "Scirea",
+        "Gentile",
+        "Cabrini",
+        "Oriali",
+        "Tardelli",
+        "Antognoni",
+        "Causio",
+        "Rossi",
+        "Graziani"
+      ]
+    },
+    "hun-1954": {
+      "source": "https://en.wikipedia.org/wiki/1954_FIFA_World_Cup_final",
+      "note": "XI icônico do Golden Team (final vs Alemanha)",
+      "requiredXI": [
+        "Grosics",
+        "Lóránt",
+        "Budai",
+        "Lantos",
+        "Bozsik",
+        "Zakariás",
+        "Machos",
+        "Hidegkuti",
+        "Puskás",
+        "Kocsis",
+        "Tóth"
+      ],
+      "pool": [
+        "Grosics",
+        "Lóránt",
+        "Budai",
+        "Lantos",
+        "Bozsik",
+        "Zakariás",
+        "Machos",
+        "Hidegkuti",
+        "Puskás",
+        "Kocsis",
+        "Tóth"
+      ]
+    },
+    "cro-2018": {
+      "source": "https://en.wikipedia.org/wiki/2018_FIFA_World_Cup_final",
+      "note": "XI da final vs França",
+      "requiredXI": [
+        "Subašić",
+        "Vrsaljko",
+        "Lovren",
+        "Vida",
+        "Strinić",
+        "Brozović",
+        "Modrić",
+        "Rakitić",
+        "Perišić",
+        "Mandžukić",
+        "Rebić"
+      ],
+      "pool": [
+        "Subašić",
+        "Vrsaljko",
+        "Lovren",
+        "Vida",
+        "Strinić",
+        "Brozović",
+        "Modrić",
+        "Rakitić",
+        "Perišić",
+        "Mandžukić",
+        "Rebić"
+      ]
+    },
+    "uru-2010": {
+      "source": "https://en.wikipedia.org/wiki/2010_FIFA_World_Cup",
+      "note": "XI icônico (4º lugar)",
+      "requiredXI": [
+        "Muslera",
+        "Pereira",
+        "Lugano",
+        "Godín",
+        "Fucile",
+        "Pérez",
+        "Arévalo",
+        "Forlán",
+        "Suárez",
+        "Cavani",
+        "Rodríguez"
+      ],
+      "pool": [
+        "Muslera",
+        "Pereira",
+        "Lugano",
+        "Godín",
+        "Fucile",
+        "Pérez",
+        "Arévalo",
+        "Forlán",
+        "Suárez",
+        "Cavani",
+        "Rodríguez"
+      ]
+    },
+    "mex-1986": {
+      "source": "https://www.rsssf.org/tables/86full.html",
+      "note": "XI titular vs Bélgica (abertura da Copa)",
+      "requiredXI": [
+        "Pablo Larios",
+        "Servín",
+        "Quirarte",
+        "Félix Cruz",
+        "Trejo",
+        "Aguirre",
+        "Negrete",
+        "Muñoz",
+        "Boy",
+        "Flores",
+        "Hugo Sánchez"
+      ],
+      "pool": [
+        "Pablo Larios",
+        "Servín",
+        "Quirarte",
+        "Félix Cruz",
+        "Trejo",
+        "Aguirre",
+        "Negrete",
+        "Muñoz",
+        "Boy",
+        "Flores",
+        "Hugo Sánchez"
+      ]
+    },
+    "jpn-2002": {
+      "source": "https://en.wikipedia.org/wiki/2002_FIFA_World_Cup",
+      "note": "XI icônico (quartas de final)",
+      "requiredXI": [
+        "Narazaki",
+        "Matsuda",
+        "Miyamoto",
+        "Nakazawa",
+        "Katayama",
+        "Inamoto",
+        "Ono",
+        "Nakata",
+        "T. Suzuki",
+        "Takahara",
+        "Ichikawa"
+      ],
+      "pool": [
+        "Narazaki",
+        "Matsuda",
+        "Miyamoto",
+        "Nakazawa",
+        "Katayama",
+        "Inamoto",
+        "Ono",
+        "Nakata",
+        "T. Suzuki",
+        "Takahara",
+        "Ichikawa"
+      ]
+    },
+    "sen-2002": {
+      "source": "https://www.fifa.com/en/tournaments/mens/worldcup/articles/world-cup-upsets-france-senegal",
+      "note": "XI vs França (abertura da Copa)",
+      "requiredXI": [
+        "Sylva",
+        "Daf",
+        "Diatta",
+        "Aliou Cissé",
+        "Coly",
+        "Pape Diop",
+        "Diao",
+        "Ndiaye",
+        "Bouba Diop",
+        "Fadiga",
+        "Diouf"
+      ],
+      "pool": [
+        "Sylva",
+        "Daf",
+        "Diatta",
+        "Aliou Cissé",
+        "Coly",
+        "Pape Diop",
+        "Diao",
+        "Ndiaye",
+        "Bouba Diop",
+        "Fadiga",
+        "Diouf"
+      ]
+    },
+    "bra-2010": {
+      "source": "https://en.wikipedia.org/wiki/2010_FIFA_World_Cup",
+      "note": "XI icônico (quartas de final)",
+      "requiredXI": [
+        "Júlio César",
+        "Maicon",
+        "Lúcio",
+        "Juan",
+        "Bastos",
+        "Felipe Melo",
+        "Gilberto Silva",
+        "Kaká",
+        "Robinho",
+        "Fabiano",
+        "Dani Alves"
+      ],
+      "pool": [
+        "Júlio César",
+        "Maicon",
+        "Lúcio",
+        "Juan",
+        "Bastos",
+        "Felipe Melo",
+        "Gilberto Silva",
+        "Kaká",
+        "Robinho",
+        "Fabiano",
+        "Dani Alves"
+      ]
+    },
+    "bra-2014": {
+      "source": "https://en.wikipedia.org/wiki/2014_FIFA_World_Cup",
+      "note": "XI icônico (semifinal)",
+      "requiredXI": [
+        "Júlio César",
+        "Dani Alves",
+        "Thiago Silva",
+        "David Luiz",
+        "Marcelo",
+        "Fernandinho",
+        "Paulinho",
+        "Oscar",
+        "Neymar",
+        "Fred",
+        "Hulk"
+      ],
+      "pool": [
+        "Júlio César",
+        "Dani Alves",
+        "Thiago Silva",
+        "David Luiz",
+        "Marcelo",
+        "Fernandinho",
+        "Paulinho",
+        "Oscar",
+        "Neymar",
+        "Fred",
+        "Hulk"
+      ]
+    },
+    "ger-2010": {
+      "source": "https://en.wikipedia.org/wiki/2010_FIFA_World_Cup",
+      "note": "XI icônico (semifinal)",
+      "requiredXI": [
+        "Neuer",
+        "Lahm",
+        "Mertesacker",
+        "Friedrich",
+        "Badstuber",
+        "Schweinsteiger",
+        "Khedira",
+        "Kroos",
+        "Özil",
+        "Thomas Müller",
+        "Klose"
+      ],
+      "pool": [
+        "Neuer",
+        "Lahm",
+        "Mertesacker",
+        "Friedrich",
+        "Badstuber",
+        "Schweinsteiger",
+        "Khedira",
+        "Kroos",
+        "Özil",
+        "Thomas Müller",
+        "Klose"
+      ]
+    },
+    "bra-2026": {
+      "source": "https://www.cbf.com.br",
+      "note": "Convocados CBF 18/05/2026",
+      "requiredXI": [
+        "Alisson",
+        "Danilo",
+        "Marquinhos",
+        "Gabriel",
+        "Alex Sandro",
+        "Casemiro",
+        "Bruno Guimarães",
+        "Paquetá",
+        "Raphinha",
+        "Vinícius",
+        "Neymar"
+      ]
+    },
+    "fra-2026": {
+      "source": "https://www.fff.fr",
+      "note": "Convocados FFF 14/05/2026",
+      "requiredXI": [
+        "Maignan",
+        "Koundé",
+        "Saliba",
+        "Konaté",
+        "T. Hernández",
+        "Kanté",
+        "Tchouaméni",
+        "Cherki",
+        "Mbappé",
+        "Dembélé",
+        "Thuram"
+      ]
+    },
+    "nor-2026": {
+      "source": "https://www.fotball.no",
+      "note": "Convocados NFF 21/05/2026",
+      "requiredXI": [
+        "Nyland",
+        "Ryerson",
+        "Ajer",
+        "Østigaard",
+        "Bjørkan",
+        "Berge",
+        "Ødegaard",
+        "Aursnes",
+        "Haaland",
+        "Sørloth",
+        "Nusa"
+      ]
+    },
+    "jpn-2026": {
+      "source": "https://www.jfa.jp/eng/samuraiblue/worldcup_2026/member.html",
+      "note": "Convocados JFA 15/05/2026",
+      "requiredXI": [
+        "Zion Suzuki",
+        "Tomiyasu",
+        "Itakura",
+        "Hiroki Ito",
+        "Nagatomo",
+        "Endo",
+        "Kamada",
+        "Ao Tanaka",
+        "Kubo",
+        "Doan",
+        "Ueda"
+      ]
+    }
+  }
+}

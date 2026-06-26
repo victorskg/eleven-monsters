@@ -9,6 +9,22 @@ const LEGENDARY_PAIRS: [string, string, string][] = [
   ["xavi", "iniesta", "Xavi + Iniesta"],
   ["zidane", "henry", "Zidane + Henry"],
   ["cruyff", "rep", "Cruyff + Rep"],
+  ["gullit", "van basten", "Gullit + van Basten"],
+  ["beckenbauer", "gerd muller", "Beckenbauer + Gerd Müller"],
+  ["puskas", "kocsis", "Puskás + Kocsis"],
+  ["rossi", "zoff", "Rossi + Zoff"],
+  ["modric", "rakitic", "Modrić + Rakitić"],
+  ["forlan", "suarez", "Forlán + Suárez"],
+  ["nakata", "ono", "Nakata + Ono"],
+  ["diouf", "cisse", "Diouf + Cissé"],
+  ["kaka", "robinho", "Kaká + Robinho"],
+  ["neymar", "oscar", "Neymar + Oscar"],
+  ["klose", "ozeil", "Klose + Özil"],
+  ["haaland", "odegaard", "Haaland + Ødegaard"],
+  ["mbappe", "dembele", "Mbappé + Dembélé"],
+  ["neymar", "vinicius", "Neymar + Vinícius"],
+  ["endo", "kamada", "Endo + Kamada"],
+  ["kubo", "doan", "Kubo + Doan"],
 ];
 
 function normalizeName(name: string): string {

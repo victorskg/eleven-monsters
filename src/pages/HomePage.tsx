@@ -47,8 +47,8 @@ export const HomePage = memo(function HomePage() {
           className="grid grid-cols-3 gap-6 text-center max-w-lg"
         >
           {[
-            { n: "16", l: "Seleções" },
-            { n: "180+", l: "Jogadores" },
+            { n: "32", l: "Seleções" },
+            { n: "350+", l: "Jogadores" },
             { n: "7", l: "Partidas" },
           ].map((stat) => (
             <div key={stat.l}>
