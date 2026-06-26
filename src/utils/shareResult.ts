@@ -26,15 +26,13 @@ export function buildShareMessage(stats: ShareResultStats): string {
 export async function shareGameResult(
   stats: ShareResultStats,
 ): Promise<"shared" | "copied"> {
-  const text = buildShareText(stats);
-  const url = getShareUrl();
+  const message = buildShareMessage(stats);
 
   if (typeof navigator !== "undefined" && navigator.share) {
     try {
       await navigator.share({
         title: "Eleven Monsters",
-        text,
-        url,
+        text: message,
       });
       return "shared";
     } catch (err) {
@@ -44,6 +42,6 @@ export async function shareGameResult(
     }
   }
 
-  await navigator.clipboard.writeText(buildShareMessage(stats));
+  await navigator.clipboard.writeText(message);
   return "copied";
 }
